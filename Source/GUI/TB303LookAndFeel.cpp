@@ -2,111 +2,73 @@
 
 TB303LookAndFeel::TB303LookAndFeel()
 {
+    // Dark futuristic theme
     setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-    setColour(juce::Label::textColourId, getTextDark());
-    setColour(juce::ComboBox::backgroundColourId, getDisplayBg());
-    setColour(juce::ComboBox::outlineColourId, juce::Colour(0xFF808080));
-    setColour(juce::ComboBox::textColourId, getTextDark());
-    setColour(juce::PopupMenu::backgroundColourId, getDisplayBg());
-    setColour(juce::PopupMenu::textColourId, getTextDark());
-    setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(0xFF4060A0));
-    setColour(juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
+    setColour(juce::Label::textColourId, getTextBright());
+    setColour(juce::ComboBox::backgroundColourId, getBgLight());
+    setColour(juce::ComboBox::outlineColourId, getBorder());
+    setColour(juce::ComboBox::textColourId, getTextBright());
+    setColour(juce::ComboBox::arrowColourId, getNeonCyan());
+    setColour(juce::PopupMenu::backgroundColourId, getBgMid());
+    setColour(juce::PopupMenu::textColourId, getTextBright());
+    setColour(juce::PopupMenu::highlightedBackgroundColourId, getNeonBlue().withAlpha(0.3f));
+    setColour(juce::PopupMenu::highlightedTextColourId, getNeonCyan());
 }
 
 void TB303LookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
                                          float sliderPos, float rotaryStartAngle, float rotaryEndAngle,
                                          juce::Slider& /*slider*/)
 {
-    auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(2.0f);
+    auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(3.0f);
     auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
-    auto centreX = bounds.getCentreX();
-    auto centreY = bounds.getCentreY();
+    auto cx = bounds.getCentreX();
+    auto cy = bounds.getCentreY();
     auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-    // Outer shadow
-    g.setColour(juce::Colour(0x40000000));
-    g.fillEllipse(centreX - radius + 1.0f, centreY - radius + 1.5f, radius * 2.0f, radius * 2.0f);
-
-    // Knob body - metallic gradient
+    // Outer glow ring (track)
+    float trackRadius = radius;
     {
-        juce::ColourGradient gradient(
-            juce::Colour(0xFFE8E8F0), centreX - radius * 0.7f, centreY - radius * 0.7f,
-            juce::Colour(0xFF8A8A92), centreX + radius * 0.7f, centreY + radius * 0.7f, true);
-        g.setGradientFill(gradient);
-        g.fillEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f);
+        juce::Path track;
+        track.addCentredArc(cx, cy, trackRadius, trackRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
+        g.setColour(getKnobRing());
+        g.strokePath(track, juce::PathStrokeType(3.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 
-    // Outer ring
-    g.setColour(juce::Colour(0xFF606068));
-    g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 1.2f);
-
-    // Inner circle
-    auto innerR = radius * 0.7f;
+    // Active arc (neon cyan)
     {
-        juce::ColourGradient gradient(
-            juce::Colour(0xFFD8D8E0), centreX - innerR * 0.5f, centreY - innerR * 0.5f,
-            juce::Colour(0xFF909098), centreX + innerR * 0.5f, centreY + innerR * 0.5f, true);
-        g.setGradientFill(gradient);
-        g.fillEllipse(centreX - innerR, centreY - innerR, innerR * 2.0f, innerR * 2.0f);
-    }
+        juce::Path activeArc;
+        activeArc.addCentredArc(cx, cy, trackRadius, trackRadius, 0.0f, rotaryStartAngle, angle, true);
+        g.setColour(getNeonCyan());
+        g.strokePath(activeArc, juce::PathStrokeType(3.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-    // Indicator line (white)
-    juce::Path indicator;
-    auto indicatorLen = radius * 0.88f;
-    auto indicatorW = juce::jmax(1.5f, radius * 0.08f);
-    indicator.addRoundedRectangle(-indicatorW * 0.5f, -indicatorLen, indicatorW, indicatorLen * 0.4f, 1.0f);
-
-    g.setColour(juce::Colours::white);
-    g.fillPath(indicator, juce::AffineTransform::rotation(angle).translated(centreX, centreY));
-
-    // Center dot
-    g.setColour(juce::Colour(0xFF505058));
-    g.fillEllipse(centreX - 1.5f, centreY - 1.5f, 3.0f, 3.0f);
-}
-
-void TB303LookAndFeel::drawLargeKnob(juce::Graphics& g, juce::Rectangle<float> bounds,
-                                       float sliderPos, float startAngle, float endAngle)
-{
-    auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
-    auto centreX = bounds.getCentreX();
-    auto centreY = bounds.getCentreY();
-    auto angle = startAngle + sliderPos * (endAngle - startAngle);
-
-    // Outer notched ring
-    g.setColour(juce::Colour(0xFF606068));
-    g.drawEllipse(centreX - radius, centreY - radius, radius * 2.0f, radius * 2.0f, 2.0f);
-
-    // Tick marks around the ring
-    int numTicks = 31;
-    for (int i = 0; i < numTicks; ++i)
-    {
-        float tickAngle = startAngle + (static_cast<float>(i) / static_cast<float>(numTicks - 1)) * (endAngle - startAngle);
-        float innerTick = radius - 4.0f;
-        float outerTick = radius;
-        float x1 = centreX + innerTick * std::sin(tickAngle);
-        float y1 = centreY - innerTick * std::cos(tickAngle);
-        float x2 = centreX + outerTick * std::sin(tickAngle);
-        float y2 = centreY - outerTick * std::cos(tickAngle);
-        g.setColour(juce::Colour(0xFF505058));
-        g.drawLine(x1, y1, x2, y2, 0.8f);
+        // Glow effect
+        g.setColour(getNeonCyan().withAlpha(0.15f));
+        g.strokePath(activeArc, juce::PathStrokeType(8.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 
     // Knob body
-    auto knobR = radius * 0.82f;
+    auto knobR = radius * 0.7f;
     {
         juce::ColourGradient gradient(
-            juce::Colour(0xFFE0E0E8), centreX - knobR * 0.6f, centreY - knobR * 0.6f,
-            juce::Colour(0xFF8A8A92), centreX + knobR * 0.6f, centreY + knobR * 0.6f, true);
+            juce::Colour(0xFF2A2A3A), cx, cy - knobR,
+            juce::Colour(0xFF151520), cx, cy + knobR, false);
         g.setGradientFill(gradient);
-        g.fillEllipse(centreX - knobR, centreY - knobR, knobR * 2.0f, knobR * 2.0f);
+        g.fillEllipse(cx - knobR, cy - knobR, knobR * 2.0f, knobR * 2.0f);
     }
 
-    // Indicator
-    juce::Path indicator;
-    auto indicatorLen = knobR * 0.9f;
-    indicator.addRoundedRectangle(-1.5f, -indicatorLen, 3.0f, indicatorLen * 0.35f, 1.0f);
-    g.setColour(juce::Colours::white);
-    g.fillPath(indicator, juce::AffineTransform::rotation(angle).translated(centreX, centreY));
+    // Knob border
+    g.setColour(juce::Colour(0xFF3A3A50));
+    g.drawEllipse(cx - knobR, cy - knobR, knobR * 2.0f, knobR * 2.0f, 1.0f);
+
+    // Indicator dot
+    float dotDist = knobR * 0.65f;
+    float dotX = cx + dotDist * std::sin(angle);
+    float dotY = cy - dotDist * std::cos(angle);
+    g.setColour(getNeonCyan());
+    g.fillEllipse(dotX - 2.5f, dotY - 2.5f, 5.0f, 5.0f);
+    // Dot glow
+    g.setColour(getNeonCyan().withAlpha(0.3f));
+    g.fillEllipse(dotX - 5.0f, dotY - 5.0f, 10.0f, 10.0f);
 }
 
 void TB303LookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
@@ -116,23 +78,23 @@ void TB303LookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& but
 {
     auto bounds = button.getLocalBounds().toFloat().reduced(0.5f);
 
-    juce::Colour baseColour = shouldDrawButtonAsDown ? juce::Colour(0xFFB0B0B4)
-                             : shouldDrawButtonAsHighlighted ? juce::Colour(0xFFDCDCE0)
-                             : juce::Colour(0xFFD0D0D4);
+    // Dark button with subtle border
+    juce::Colour bgCol = shouldDrawButtonAsDown ? getBgLight().brighter(0.15f)
+                        : shouldDrawButtonAsHighlighted ? getBgLight().brighter(0.08f)
+                        : getBgLight();
 
-    // 3D button effect
-    g.setColour(baseColour);
-    g.fillRoundedRectangle(bounds, 2.0f);
+    g.setColour(bgCol);
+    g.fillRoundedRectangle(bounds, 4.0f);
 
-    // Top-left highlight
-    g.setColour(shouldDrawButtonAsDown ? juce::Colour(0xFF909098) : juce::Colour(0xFFE8E8EC));
-    g.drawLine(bounds.getX() + 1, bounds.getY() + 1, bounds.getRight() - 1, bounds.getY() + 1, 1.0f);
-    g.drawLine(bounds.getX() + 1, bounds.getY() + 1, bounds.getX() + 1, bounds.getBottom() - 1, 1.0f);
+    juce::Colour borderCol = shouldDrawButtonAsDown ? getNeonCyan().withAlpha(0.5f) : getBorderLight();
+    g.setColour(borderCol);
+    g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-    // Bottom-right shadow
-    g.setColour(shouldDrawButtonAsDown ? juce::Colour(0xFFE0E0E4) : juce::Colour(0xFF808088));
-    g.drawLine(bounds.getX() + 1, bounds.getBottom() - 1, bounds.getRight() - 1, bounds.getBottom() - 1, 1.0f);
-    g.drawLine(bounds.getRight() - 1, bounds.getY() + 1, bounds.getRight() - 1, bounds.getBottom() - 1, 1.0f);
+    if (shouldDrawButtonAsDown)
+    {
+        g.setColour(getNeonCyan().withAlpha(0.08f));
+        g.fillRoundedRectangle(bounds, 4.0f);
+    }
 }
 
 void TB303LookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
@@ -141,17 +103,18 @@ void TB303LookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& b
 {
     auto bounds = button.getLocalBounds().toFloat().reduced(1.0f);
 
-    juce::Colour bgCol = button.getToggleState() ? juce::Colour(0xFFB8B8C0) : juce::Colour(0xFFD0D0D8);
+    bool on = button.getToggleState();
+    juce::Colour bgCol = on ? getNeonCyan().withAlpha(0.15f) : getBgLight();
     if (shouldDrawButtonAsHighlighted)
         bgCol = bgCol.brighter(0.05f);
 
     g.setColour(bgCol);
-    g.fillRoundedRectangle(bounds, 2.0f);
+    g.fillRoundedRectangle(bounds, 4.0f);
 
-    g.setColour(juce::Colour(0xFF707078));
-    g.drawRoundedRectangle(bounds, 2.0f, 1.0f);
+    g.setColour(on ? getNeonCyan().withAlpha(0.6f) : getBorderLight());
+    g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
 
-    g.setColour(getTextDark());
+    g.setColour(on ? getNeonCyan() : getTextDim());
     g.setFont(juce::Font(10.0f, juce::Font::bold));
     g.drawFittedText(button.getButtonText(), button.getLocalBounds().reduced(2),
                      juce::Justification::centred, 2);
@@ -163,10 +126,10 @@ void TB303LookAndFeel::drawComboBox(juce::Graphics& g, int width, int height,
 {
     auto bounds = juce::Rectangle<float>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
 
-    g.setColour(getDisplayBg());
-    g.fillRoundedRectangle(bounds, 2.0f);
-    g.setColour(juce::Colour(0xFF707078));
-    g.drawRoundedRectangle(bounds.reduced(0.5f), 2.0f, 1.0f);
+    g.setColour(getBgLight());
+    g.fillRoundedRectangle(bounds, 4.0f);
+    g.setColour(getBorderLight());
+    g.drawRoundedRectangle(bounds.reduced(0.5f), 4.0f, 1.0f);
 
     // Arrows
     float arrowX = static_cast<float>(width) - 16.0f;
@@ -174,39 +137,56 @@ void TB303LookAndFeel::drawComboBox(juce::Graphics& g, int width, int height,
     juce::Path upArrow, downArrow;
     upArrow.addTriangle(arrowX, midY - 2.0f, arrowX + 8.0f, midY - 2.0f, arrowX + 4.0f, midY - 6.0f);
     downArrow.addTriangle(arrowX, midY + 2.0f, arrowX + 8.0f, midY + 2.0f, arrowX + 4.0f, midY + 6.0f);
-    g.setColour(juce::Colour(0xFF404048));
+    g.setColour(getNeonCyan());
     g.fillPath(upArrow);
     g.fillPath(downArrow);
 }
 
-void TB303LookAndFeel::drawSilverPanel(juce::Graphics& g, juce::Rectangle<float> bounds, bool darker)
+void TB303LookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
 {
-    juce::Colour top = darker ? juce::Colour(0xFFCCCCD0) : juce::Colour(0xFFD8D8DC);
-    juce::Colour bottom = darker ? juce::Colour(0xFFB8B8BC) : juce::Colour(0xFFC4C4C8);
+    g.fillAll(label.findColour(juce::Label::backgroundColourId));
 
-    juce::ColourGradient gradient(top, 0.0f, bounds.getY(), bottom, 0.0f, bounds.getBottom(), false);
-    g.setGradientFill(gradient);
-    g.fillRect(bounds);
-
-    // Top highlight
-    g.setColour(juce::Colour(0xFFE8E8EC));
-    g.drawLine(bounds.getX(), bounds.getY(), bounds.getRight(), bounds.getY(), 1.0f);
-    // Bottom shadow
-    g.setColour(juce::Colour(0xFFA0A0A8));
-    g.drawLine(bounds.getX(), bounds.getBottom() - 1.0f, bounds.getRight(), bounds.getBottom() - 1.0f, 1.0f);
+    if (!label.isBeingEdited())
+    {
+        auto textArea = label.getBorderSize().subtractedFrom(label.getLocalBounds());
+        g.setColour(label.findColour(juce::Label::textColourId));
+        g.setFont(label.getFont());
+        g.drawFittedText(label.getText(), textArea, label.getJustificationType(),
+                         juce::jmax(1, static_cast<int>(static_cast<float>(textArea.getHeight()) / label.getFont().getHeight())),
+                         label.getMinimumHorizontalScale());
+    }
 }
 
-void TB303LookAndFeel::drawDarkPanel(juce::Graphics& g, juce::Rectangle<float> bounds)
+void TB303LookAndFeel::drawFuturisticPanel(juce::Graphics& g, juce::Rectangle<float> bounds,
+                                             juce::Colour accentColor)
 {
-    g.setColour(getDarkPanel());
-    g.fillRect(bounds);
+    // Dark background
+    g.setColour(getPanelBg());
+    g.fillRoundedRectangle(bounds, 6.0f);
 
-    // Inner lighter area
-    auto inner = bounds.reduced(6.0f);
-    g.setColour(getDarkPanelLight());
-    g.fillRoundedRectangle(inner, 4.0f);
+    // Subtle border with accent glow
+    g.setColour(getBorder());
+    g.drawRoundedRectangle(bounds.reduced(0.5f), 6.0f, 1.0f);
 
-    // Subtle inner border
-    g.setColour(juce::Colour(0xFF1A1A20));
-    g.drawRoundedRectangle(inner, 4.0f, 1.0f);
+    // Top accent line
+    g.setColour(accentColor.withAlpha(0.3f));
+    g.drawLine(bounds.getX() + 20.0f, bounds.getY() + 0.5f,
+               bounds.getRight() - 20.0f, bounds.getY() + 0.5f, 1.5f);
+
+    // Glow at top
+    juce::ColourGradient glow(accentColor.withAlpha(0.06f), bounds.getCentreX(), bounds.getY(),
+                               juce::Colours::transparentBlack, bounds.getCentreX(), bounds.getY() + 30.0f, false);
+    g.setGradientFill(glow);
+    g.fillRect(bounds.withHeight(30.0f));
+}
+
+void TB303LookAndFeel::drawGlowLine(juce::Graphics& g, float x1, float y1, float x2, float y2,
+                                       juce::Colour color, float thickness)
+{
+    // Glow
+    g.setColour(color.withAlpha(0.15f));
+    g.drawLine(x1, y1, x2, y2, thickness + 4.0f);
+    // Core line
+    g.setColour(color.withAlpha(0.4f));
+    g.drawLine(x1, y1, x2, y2, thickness);
 }

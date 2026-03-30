@@ -14,15 +14,13 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
     addAndMakeVisible(scaleKnob_);
     addAndMakeVisible(tempoKnob_);
 
-    // Play mode
     playModeBox_.addItemList(juce::StringArray{ "FORWARD", "REVERSE", "FWD&REV", "INVERT", "RANDOM" }, 1);
     addAndMakeVisible(playModeBox_);
     playModeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         processor.getAPVTS(), "playMode", playModeBox_);
 
-    // Pattern list
     patternLabel_.setFont(juce::Font(8.0f, juce::Font::bold));
-    patternLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDark());
+    patternLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDim());
     addAndMakeVisible(patternLabel_);
 
     for (int i = 0; i < 8; ++i)
@@ -45,9 +43,8 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
         processor_.getSequencer().setCurrentPattern(patternList_.getSelectedId() - 1);
     };
 
-    // Patch list
     patchLabel_.setFont(juce::Font(8.0f, juce::Font::bold));
-    patchLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDark());
+    patchLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDim());
     addAndMakeVisible(patchLabel_);
 
     updatePatchList();
@@ -90,7 +87,6 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
         patch.delayFeedback = *apvts.getRawParameterValue("delayFeedback");
         patch.delayType = static_cast<int>(*apvts.getRawParameterValue("delayType"));
         patch.tempoSync = *apvts.getRawParameterValue("tempoSync") > 0.5f;
-
         int idx = patchList_.getSelectedId() - 1;
         if (idx >= 0 && idx < processor_.getPresetManager().getNumPatches())
             processor_.getPresetManager().replacePatch(idx, patch);
@@ -99,9 +95,7 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
         updatePatchList();
     };
 
-    // Bank buttons
-    for (int i = 0; i < 8; ++i)
-    {
+    for (int i = 0; i < 8; ++i) {
         auto* btn = new juce::TextButton(juce::String(i + 1));
         btn->onClick = [this, i]() {
             processor_.getSequencer().setCurrentBank(i);
@@ -131,102 +125,84 @@ void MiddlePanel::updatePatchList()
 void MiddlePanel::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
-    TB303LookAndFeel::drawSilverPanel(g, bounds, true);
-
-    g.setColour(TB303LookAndFeel::getTextDark());
-
-    // Scale knob markings
-    g.setFont(juce::Font(7.0f));
-    int scaleX = 185;
-    g.drawText("1/16T", scaleX - 5, 78, 30, 10, juce::Justification::centred);
-    g.drawText("1/16", scaleX + 22, 64, 25, 10, juce::Justification::centred);
-    g.drawText("1/32", scaleX + 38, 78, 25, 10, juce::Justification::centred);
+    TB303LookAndFeel::drawFuturisticPanel(g, bounds, TB303LookAndFeel::getNeonPurple());
 
     // PLAY MODE label
+    g.setColour(TB303LookAndFeel::getTextDim());
     g.setFont(juce::Font(8.0f, juce::Font::bold));
-    g.drawText("PLAY MODE", 290, 3, 80, 10, juce::Justification::centred);
-
-    // Play mode rotary indicators
-    g.setFont(juce::Font(7.0f));
-    int pmX = 300;
-    g.drawText("FORWARD", pmX - 35, 20, 55, 10, juce::Justification::centredRight);
-    g.drawText("REVERSE", pmX + 55, 28, 55, 10, juce::Justification::centredLeft);
-    g.drawText("FWD&REV", pmX + 55, 48, 55, 10, juce::Justification::centredLeft);
-    g.drawText("INVERT", pmX + 35, 68, 55, 10, juce::Justification::centredLeft);
-    g.drawText("RANDOM", pmX - 35, 68, 55, 10, juce::Justification::centredRight);
+    g.drawText("PLAY MODE", 280, 6, 80, 10, juce::Justification::centred);
 
     // LIST label
-    g.setFont(juce::Font(8.0f, juce::Font::bold));
-    g.drawText("LIST", 430, 3, 30, 10, juce::Justification::centredLeft);
+    g.drawText("LIST", 430, 6, 30, 10, juce::Justification::centredLeft);
 
-    // Separator before TB-303 branding
+    // Separator
     float sepX = bounds.getWidth() - 240.0f;
-    g.setColour(juce::Colour(0xFFA0A0A8));
-    g.drawLine(sepX, 5.0f, sepX, bounds.getHeight() - 5.0f, 1.0f);
+    TB303LookAndFeel::drawGlowLine(g, sepX, 8.0f, sepX, bounds.getHeight() - 8.0f,
+                                     TB303LookAndFeel::getNeonPurple());
 
-    // TB-303 branding
-    g.setColour(TB303LookAndFeel::getTextDark());
-    g.setFont(juce::Font(32.0f, juce::Font::bold));
+    // TB-303 branding (futuristic)
     int brandX = static_cast<int>(bounds.getWidth()) - 230;
-    g.drawText("TB-303", brandX, 8, 200, 38, juce::Justification::centredRight);
 
+    g.setColour(TB303LookAndFeel::getNeonCyan());
+    g.setFont(juce::Font(34.0f, juce::Font::bold));
+    g.drawText("TB-303", brandX, 8, 200, 40, juce::Justification::centredRight);
+
+    // Glow
+    g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.06f));
+    g.setFont(juce::Font(34.0f, juce::Font::bold));
+    g.drawText("TB-303", brandX - 1, 7, 200, 40, juce::Justification::centredRight);
+
+    g.setColour(TB303LookAndFeel::getTextDim());
     g.setFont(juce::Font(11.0f));
     g.drawText("Computer Controlled", brandX, 46, 200, 16, juce::Justification::centredRight);
 
-    // Horizontal line under TB-303
-    g.setColour(juce::Colour(0xFF808088));
-    g.drawLine(static_cast<float>(brandX + 50), 44.0f, bounds.getWidth() - 12.0f, 44.0f, 1.0f);
+    // Horizontal accent line
+    TB303LookAndFeel::drawGlowLine(g, static_cast<float>(brandX + 60), 46.0f,
+                                     bounds.getWidth() - 14.0f, 46.0f, TB303LookAndFeel::getNeonCyan());
 
-    // Level meter bar (simple visual)
-    auto meterBounds = juce::Rectangle<float>(470.0f, 95.0f, 150.0f, 6.0f);
-    g.setColour(juce::Colour(0xFF404048));
+    // Level meter (futuristic)
+    auto meterBounds = juce::Rectangle<float>(470.0f, 92.0f, 150.0f, 4.0f);
+    g.setColour(TB303LookAndFeel::getBgLight());
     g.fillRoundedRectangle(meterBounds, 2.0f);
-    g.setColour(juce::Colour(0xFFE04040));
+    // Gradient fill
+    juce::ColourGradient meterGrad(TB303LookAndFeel::getNeonCyan(), meterBounds.getX(), meterBounds.getCentreY(),
+                                     TB303LookAndFeel::getNeonPink(), meterBounds.getRight(), meterBounds.getCentreY(), false);
+    g.setGradientFill(meterGrad);
     g.fillRoundedRectangle(meterBounds.withWidth(meterBounds.getWidth() * 0.7f), 2.0f);
 }
 
 void MiddlePanel::resized()
 {
     int w = getWidth();
-    int y = 8;
+    int y = 10;
 
-    // Option/Help/About buttons
     optionButton_.setBounds(10, y, 50, 20);
     helpButton_.setBounds(62, y, 40, 20);
     aboutButton_.setBounds(104, y, 48, 20);
 
-    // Shuffle knob
-    shuffleKnob_.setBounds(10, y + 26, 70, 72);
+    shuffleKnob_.setBounds(10, y + 26, 68, 68);
+    scaleKnob_.setBounds(82, y + 26, 68, 68);
+    tempoKnob_.setBounds(160, y + 12, 68, 72);
 
-    // Scale knob
-    scaleKnob_.setBounds(85, y + 26, 70, 72);
+    playModeBox_.setBounds(268, y + 18, 110, 44);
 
-    // Tempo knob
-    tempoKnob_.setBounds(165, y + 10, 70, 72);
-
-    // Play mode (as combo box styled like rotary)
-    playModeBox_.setBounds(275, y + 18, 100, 48);
-
-    // Pattern section
     patternLabel_.setBounds(430, y + 8, 60, 12);
     patternList_.setBounds(470, y + 8, 170, 22);
     patternDown_.setBounds(644, y + 8, 22, 22);
     patternUp_.setBounds(668, y + 8, 22, 22);
     patternWrite_.setBounds(694, y + 8, 50, 22);
 
-    // Patch section
-    patchLabel_.setBounds(430, y + 40, 60, 12);
-    patchList_.setBounds(470, y + 40, 170, 22);
-    patchDown_.setBounds(644, y + 40, 22, 22);
-    patchUp_.setBounds(668, y + 40, 22, 22);
-    patchWrite_.setBounds(694, y + 40, 50, 22);
+    patchLabel_.setBounds(430, y + 38, 60, 12);
+    patchList_.setBounds(470, y + 38, 170, 22);
+    patchDown_.setBounds(644, y + 38, 22, 22);
+    patchUp_.setBounds(668, y + 38, 22, 22);
+    patchWrite_.setBounds(694, y + 38, 50, 22);
 
-    // Bank buttons (2 rows of 4) - right of TB-303 label
     int bankX = w - 185;
     int bankW = 34;
-    int bankH = 28;
+    int bankH = 26;
     for (int i = 0; i < 4; ++i)
-        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), y + 68, bankW, bankH);
+        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), y + 66, bankW, bankH);
     for (int i = 4; i < 8; ++i)
-        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), y + 68 + bankH + 4, bankW, bankH - 2);
+        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), y + 66 + bankH + 3, bankW, bankH);
 }

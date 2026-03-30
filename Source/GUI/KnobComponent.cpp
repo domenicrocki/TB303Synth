@@ -1,4 +1,5 @@
 #include "KnobComponent.h"
+#include "TB303LookAndFeel.h"
 
 KnobComponent::KnobComponent(const juce::String& labelText, const juce::String& paramId,
                              juce::AudioProcessorValueTreeState& apvts)
@@ -10,8 +11,8 @@ KnobComponent::KnobComponent(const juce::String& labelText, const juce::String& 
 
     label_.setText(labelText, juce::dontSendNotification);
     label_.setJustificationType(juce::Justification::centred);
-    label_.setFont(juce::Font(10.0f, juce::Font::bold));
-    label_.setColour(juce::Label::textColourId, juce::Colour(0xFF1A1A1A));
+    label_.setFont(juce::Font(9.0f, juce::Font::bold));
+    label_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDim());
     addAndMakeVisible(label_);
 
     attachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
@@ -23,7 +24,7 @@ KnobComponent::~KnobComponent() {}
 void KnobComponent::resized()
 {
     auto bounds = getLocalBounds();
-    int labelHeight = 16;
+    int labelHeight = 14;
 
     if (labelBelow_)
     {

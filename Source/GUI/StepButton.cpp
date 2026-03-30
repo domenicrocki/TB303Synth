@@ -12,44 +12,35 @@ void StepButton::paint(juce::Graphics& g)
     float ledX = bounds.getCentreX() - ledSize * 0.5f;
     if (current_)
     {
-        g.setColour(TB303LookAndFeel::getLEDRed().withAlpha(0.2f));
-        g.fillEllipse(ledX - 2.0f, 0.0f, ledSize + 4.0f, ledSize + 4.0f);
+        g.setColour(TB303LookAndFeel::getLEDOn().withAlpha(0.2f));
+        g.fillEllipse(ledX - 3.0f, -1.0f, ledSize + 6.0f, ledSize + 6.0f);
     }
-    g.setColour(current_ ? TB303LookAndFeel::getLEDRed() : TB303LookAndFeel::getLEDOff());
+    g.setColour(current_ ? TB303LookAndFeel::getLEDOn() : TB303LookAndFeel::getLEDOff());
     g.fillEllipse(ledX, 1.0f, ledSize, ledSize);
 
     // Button body
     auto buttonArea = bounds.withTrimmedTop(ledSize + 4.0f);
 
-    // 3D toggle switch look
-    juce::Colour bgCol = active_ ? juce::Colour(0xFFE0E0E8) : juce::Colour(0xFFA0A0A8);
+    juce::Colour bgCol = active_ ? TB303LookAndFeel::getBgLight().brighter(0.2f) : TB303LookAndFeel::getBgLight();
     g.setColour(bgCol);
     g.fillRoundedRectangle(buttonArea, 2.0f);
 
-    // Highlight/shadow for 3D effect
+    juce::Colour borderCol = active_ ? TB303LookAndFeel::getNeonCyan().withAlpha(0.5f) : TB303LookAndFeel::getBorderLight();
+    g.setColour(borderCol);
+    g.drawRoundedRectangle(buttonArea, 2.0f, 0.8f);
+
     if (active_)
     {
-        g.setColour(juce::Colour(0xFFF0F0F8));
-        g.drawLine(buttonArea.getX() + 1, buttonArea.getY() + 1,
-                   buttonArea.getRight() - 1, buttonArea.getY() + 1, 1.0f);
+        g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.08f));
+        g.fillRoundedRectangle(buttonArea, 2.0f);
     }
-    else
-    {
-        g.setColour(juce::Colour(0xFF707078));
-        g.drawLine(buttonArea.getX() + 1, buttonArea.getY() + 1,
-                   buttonArea.getRight() - 1, buttonArea.getY() + 1, 1.0f);
-    }
-
-    g.setColour(juce::Colour(0xFF606068));
-    g.drawRoundedRectangle(buttonArea, 2.0f, 0.8f);
 }
 
 void StepButton::mouseDown(const juce::MouseEvent& /*e*/)
 {
     active_ = !active_;
     repaint();
-    if (onToggle)
-        onToggle(stepIndex_, active_);
+    if (onToggle) onToggle(stepIndex_, active_);
 }
 
 void StepButton::setActive(bool active)

@@ -4,10 +4,8 @@
 BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     : processor_(processor)
 {
-    // Position lock
     addAndMakeVisible(posLockButton_);
 
-    // Run/Stop
     runStopButton_.setToggleMode(true);
     runStopButton_.onClick = [this](bool on) {
         if (on) processor_.getSequencer().start();
@@ -15,18 +13,12 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     };
     addAndMakeVisible(runStopButton_);
 
-    // Keyboard toggle
     addAndMakeVisible(keyboardToggle_);
 
-    // Edit mode
     editButton_.setToggleMode(true);
-    editButton_.onClick = [this](bool on) {
-        editMode_ = on;
-        editStep_ = 0;
-    };
+    editButton_.onClick = [this](bool on) { editMode_ = on; editStep_ = 0; };
     addAndMakeVisible(editButton_);
 
-    // Piano keyboard
     addAndMakeVisible(keyboard_);
     keyboard_.onNoteOn = [this](int midiNote) {
         if (editMode_) {
@@ -43,13 +35,11 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
         }
     };
 
-    // Accent/Slide
     accentButton_.setToggleMode(true);
     addAndMakeVisible(accentButton_);
     slideButton_.setToggleMode(true);
     addAndMakeVisible(slideButton_);
 
-    // Octave Down/Up
     downButton_.setToggleMode(false);
     downButton_.onClick = [this](bool) {
         int oct = keyboard_.getBaseOctave();
@@ -64,7 +54,6 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     };
     addAndMakeVisible(upButton_);
 
-    // Randomize
     randomizeButton_.onClick = [this]() {
         undoPattern_ = processor_.getSequencer().getCurrentPatternRef();
         hasUndo_ = true;
@@ -73,19 +62,15 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     };
     addAndMakeVisible(randomizeButton_);
 
-    // Generate/Undo
     generateButton_.onClick = [this]() {
         if (hasUndo_) {
             processor_.getSequencer().getCurrentPatternRef() = undoPattern_;
-            hasUndo_ = false;
-            updateStepDisplay();
+            hasUndo_ = false; updateStepDisplay();
         }
     };
     addAndMakeVisible(generateButton_);
 
-    // Step buttons (1-8)
-    for (int i = 0; i < 8; ++i)
-    {
+    for (int i = 0; i < 8; ++i) {
         auto* btn = new StepButton(i);
         btn->onToggle = [this](int step, bool active) {
             auto& pattern = processor_.getSequencer().getCurrentPatternRef();
@@ -95,12 +80,10 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
         addAndMakeVisible(btn);
     }
 
-    // Modify/Undo
     modifyButton_.onClick = [this]() {
         if (hasUndo_) {
             processor_.getSequencer().getCurrentPatternRef() = undoPattern_;
-            hasUndo_ = false;
-            updateStepDisplay();
+            hasUndo_ = false; updateStepDisplay();
         }
     };
     addAndMakeVisible(modifyButton_);
@@ -114,12 +97,12 @@ BottomPanel::~BottomPanel() { stopTimer(); }
 void BottomPanel::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
-    TB303LookAndFeel::drawDarkPanel(g, bounds);
-
-    g.setColour(TB303LookAndFeel::getTextLight());
-    g.setFont(juce::Font(8.0f, juce::Font::bold));
+    TB303LookAndFeel::drawFuturisticPanel(g, bounds, TB303LookAndFeel::getNeonPink());
 
     // Note labels above keyboard
+    g.setColour(TB303LookAndFeel::getTextDim());
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
+
     const char* noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C" };
     int kbX = 185;
     int kbW = 480;
@@ -136,66 +119,48 @@ void BottomPanel::paint(juce::Graphics& g)
         }
     }
 
-    // KEYBOARD label
+    // Section labels
     g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.setColour(TB303LookAndFeel::getTextDim());
     g.drawText("KEYBOARD", 120, 12, 65, 12, juce::Justification::centred);
 
-    // Music symbols above accent/slide/down/up
-    g.setFont(juce::Font(10.0f));
+    // Notation symbols above accent/slide/down/up
+    g.setFont(juce::Font(11.0f));
+    g.setColour(TB303LookAndFeel::getTextDim());
     int symX = 690;
     int symGap = 60;
-    // Triplet notation symbols
-    g.drawText("3", symX + 14, 12, 20, 12, juce::Justification::centred);
-    g.drawText("3", symX + symGap + 14, 12, 20, 12, juce::Justification::centred);
+    g.drawText("3", symX + 14, 10, 20, 12, juce::Justification::centred);
+    g.drawText("3", symX + symGap + 14, 10, 20, 12, juce::Justification::centred);
 
-    // Note symbols for down/up
-    g.setFont(juce::Font(14.0f));
-    g.drawText(".", symX + symGap * 2 + 18, 6, 12, 12, juce::Justification::centred);
-    g.drawText(".", symX + symGap * 3 + 18, 6, 12, 12, juce::Justification::centred);
-
-    // PATTERN label (orange/red)
-    g.setColour(TB303LookAndFeel::getAccentOrange());
+    // PATTERN / OCTAVE labels (neon pink)
+    int bottomRowY = static_cast<int>(bounds.getHeight()) - 60;
+    g.setColour(TB303LookAndFeel::getNeonPink());
     g.setFont(juce::Font(9.0f, juce::Font::bold));
-    int bottomRowY = static_cast<int>(bounds.getHeight()) - 62;
     g.drawText("PATTERN", 270, bottomRowY + 42, 60, 12, juce::Justification::centred);
-
-    // OCTAVE label (orange/red)
     g.drawText("OCTAVE", static_cast<int>(bounds.getWidth()) - 200, bottomRowY + 42, 60, 12, juce::Justification::centred);
 
-    // Step numbers below buttons
-    g.setColour(TB303LookAndFeel::getTextLight());
+    // Step numbers
+    g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.6f));
     g.setFont(juce::Font(8.0f, juce::Font::bold));
     int stepX = 340;
     int stepGap = 48;
     for (int i = 0; i < 8; ++i)
-    {
         g.drawText(juce::String(i + 1), stepX + i * stepGap, bottomRowY + 42, 40, 12, juce::Justification::centred);
-    }
 }
 
 void BottomPanel::resized()
 {
     int w = getWidth();
     int h = getHeight();
-
-    // === TOP ROW ===
     int topY = 18;
     int btnH = 50;
     int btnW = 55;
 
-    // Position lock (far left, top)
     posLockButton_.setBounds(12, topY, 85, 42);
-
-    // Keyboard toggle
     keyboardToggle_.setBounds(120, topY + 12, 55, 30);
-
-    // Edit button
     editButton_.setBounds(120, topY + 48, 55, 40);
-
-    // Piano keyboard (main area)
     keyboard_.setBounds(185, topY + 6, 480, 85);
 
-    // Accent, Slide, Down, Up (right of keyboard)
     int rbX = 690;
     int rbGap = 60;
     accentButton_.setBounds(rbX, topY, btnW, btnH);
@@ -203,25 +168,17 @@ void BottomPanel::resized()
     downButton_.setBounds(rbX + rbGap * 2, topY, btnW, btnH);
     upButton_.setBounds(rbX + rbGap * 3, topY, btnW, btnH);
 
-    // Randomize / Generate (far right)
     randomizeButton_.setBounds(w - 110, topY, 95, 38);
     generateButton_.setBounds(w - 110, topY + 42, 95, 38);
 
-    // === BOTTOM ROW ===
     int bottomY = h - 60;
-
-    // Run/Stop (far left, bottom)
     runStopButton_.setBounds(12, topY + 50, 85, 45);
 
-    // Step buttons 1-8 (center bottom)
     int stepX = 340;
     int stepGap = 48;
-    int stepW = 40;
-    int stepH = 42;
     for (int i = 0; i < 8; ++i)
-        stepButtons_[i]->setBounds(stepX + i * stepGap, bottomY, stepW, stepH);
+        stepButtons_[i]->setBounds(stepX + i * stepGap, bottomY, 40, 42);
 
-    // Modify/Undo (far right bottom)
     modifyButton_.setBounds(w - 110, bottomY, 95, 38);
 }
 
@@ -229,16 +186,15 @@ void BottomPanel::timerCallback()
 {
     if (processor_.getSequencer().isPlaying())
     {
-        int currentStep = processor_.getSequencer().getCurrentStep();
+        int cs = processor_.getSequencer().getCurrentStep();
         for (int i = 0; i < 8; ++i)
-            stepButtons_[i]->setCurrent(currentStep == i || currentStep == i + 8);
+            stepButtons_[i]->setCurrent(cs == i || cs == i + 8);
     }
     else
     {
         for (int i = 0; i < 8; ++i)
             stepButtons_[i]->setCurrent(false);
     }
-
     runStopButton_.setLEDOn(processor_.getSequencer().isPlaying());
 }
 

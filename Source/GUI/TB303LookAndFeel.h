@@ -23,29 +23,36 @@ public:
                       bool isButtonDown, int buttonX, int buttonY,
                       int buttonW, int buttonH, juce::ComboBox& box) override;
 
-    // Draw a large metallic knob (for Volume)
-    static void drawLargeKnob(juce::Graphics& g, juce::Rectangle<float> bounds,
-                               float sliderPos, float startAngle, float endAngle);
+    void drawLabel(juce::Graphics& g, juce::Label& label) override;
 
-    // Draw the metallic panel background
-    static void drawSilverPanel(juce::Graphics& g, juce::Rectangle<float> bounds,
-                                 bool darker = false);
+    // Futuristic color palette
+    static juce::Colour getBgDark()      { return juce::Colour(0xFF0D0D12); }
+    static juce::Colour getBgMid()       { return juce::Colour(0xFF1A1A24); }
+    static juce::Colour getBgLight()     { return juce::Colour(0xFF252530); }
+    static juce::Colour getPanelBg()     { return juce::Colour(0xFF14141C); }
+    static juce::Colour getBorder()      { return juce::Colour(0xFF2A2A3A); }
+    static juce::Colour getBorderLight() { return juce::Colour(0xFF3A3A4E); }
 
-    // Draw dark sequencer panel
-    static void drawDarkPanel(juce::Graphics& g, juce::Rectangle<float> bounds);
+    // Neon accent colors
+    static juce::Colour getNeonCyan()    { return juce::Colour(0xFF00E5FF); }
+    static juce::Colour getNeonBlue()    { return juce::Colour(0xFF4060FF); }
+    static juce::Colour getNeonPurple()  { return juce::Colour(0xFF8040FF); }
+    static juce::Colour getNeonPink()    { return juce::Colour(0xFFFF2080); }
+    static juce::Colour getNeonOrange()  { return juce::Colour(0xFFFF6020); }
 
-    // Colors
-    static juce::Colour getSilverLight() { return juce::Colour(0xFFD8D8DC); }
-    static juce::Colour getSilverMid() { return juce::Colour(0xFFC8C8CC); }
-    static juce::Colour getSilverDark() { return juce::Colour(0xFFB0B0B4); }
-    static juce::Colour getDarkPanel() { return juce::Colour(0xFF28282E); }
-    static juce::Colour getDarkPanelLight() { return juce::Colour(0xFF3A3A42); }
-    static juce::Colour getKnobBody() { return juce::Colour(0xFFD0D0D8); }
-    static juce::Colour getKnobShadow() { return juce::Colour(0xFF707078); }
-    static juce::Colour getLEDRed() { return juce::Colour(0xFFFF2020); }
-    static juce::Colour getLEDOff() { return juce::Colour(0xFF602020); }
-    static juce::Colour getTextDark() { return juce::Colour(0xFF1A1A1A); }
-    static juce::Colour getTextLight() { return juce::Colour(0xFFCCCCD0); }
-    static juce::Colour getAccentOrange() { return juce::Colour(0xFFE06020); }
-    static juce::Colour getDisplayBg() { return juce::Colour(0xFFE8E8EC); }
+    static juce::Colour getTextBright()  { return juce::Colour(0xFFE0E0F0); }
+    static juce::Colour getTextDim()     { return juce::Colour(0xFF808098); }
+    static juce::Colour getTextLabel()   { return juce::Colour(0xFF9898B0); }
+
+    static juce::Colour getKnobBg()      { return juce::Colour(0xFF202030); }
+    static juce::Colour getKnobRing()    { return juce::Colour(0xFF3A3A50); }
+    static juce::Colour getLEDOn()       { return juce::Colour(0xFF00FF80); }
+    static juce::Colour getLEDOff()      { return juce::Colour(0xFF1A3020); }
+    static juce::Colour getLEDRed()      { return juce::Colour(0xFFFF2040); }
+
+    // Panel drawing helpers
+    static void drawFuturisticPanel(juce::Graphics& g, juce::Rectangle<float> bounds,
+                                     juce::Colour accentColor = juce::Colour(0xFF00E5FF));
+    static void drawGlowLine(juce::Graphics& g, float x1, float y1, float x2, float y2,
+                               juce::Colour color, float thickness = 1.0f);
 };
