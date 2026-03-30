@@ -20,7 +20,8 @@ private:
 
     // --- Row 1 ---
     // VCO
-    juce::TextButton waveformButton_;
+    juce::TextButton sawButton_;
+    juce::TextButton sqrButton_;
     int currentWaveform_ = 0;
     KnobComponent tuningKnob_;
 

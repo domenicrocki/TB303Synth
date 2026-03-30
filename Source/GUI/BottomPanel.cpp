@@ -176,8 +176,8 @@ void BottomPanel::resized()
     keyboard_.setBounds(140, 40, 610, 170);
 
     // Octave [775, 5, 145, 220]
-    downButton_.setBounds(790, 40, 115, 85);
-    upButton_.setBounds(790, 130, 115, 85);
+    upButton_.setBounds(790, 40, 115, 85);
+    downButton_.setBounds(790, 130, 115, 85);
 
     // Articulation [925, 5, 175, 220]
     accentButton_.setBounds(940, 40, 70, 80);

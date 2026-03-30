@@ -35,14 +35,28 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     masterTuneKnob_.setArcColor(TB303Colors::green());
     shuffleKnob_.setArcColor(TB303Colors::green());
 
-    // VCO waveform button
-    waveformButton_.setButtonText("SAW");
-    waveformButton_.onClick = [this]() {
-        currentWaveform_ = 1 - currentWaveform_;
-        apvts_.getParameter("waveform")->setValueNotifyingHost(static_cast<float>(currentWaveform_));
-        waveformButton_.setButtonText(currentWaveform_ == 0 ? "SAW" : "SQR");
+    // VCO waveform buttons
+    sawButton_.setButtonText("SAW");
+    sawButton_.setToggleState(true, juce::dontSendNotification);
+    sawButton_.setClickingTogglesState(false);
+    sawButton_.onClick = [this]() {
+        currentWaveform_ = 0;
+        apvts_.getParameter("waveform")->setValueNotifyingHost(0.0f);
+        sawButton_.setToggleState(true, juce::dontSendNotification);
+        sqrButton_.setToggleState(false, juce::dontSendNotification);
     };
-    addAndMakeVisible(waveformButton_);
+    addAndMakeVisible(sawButton_);
+
+    sqrButton_.setButtonText("SQR");
+    sqrButton_.setToggleState(false, juce::dontSendNotification);
+    sqrButton_.setClickingTogglesState(false);
+    sqrButton_.onClick = [this]() {
+        currentWaveform_ = 1;
+        apvts_.getParameter("waveform")->setValueNotifyingHost(1.0f);
+        sawButton_.setToggleState(false, juce::dontSendNotification);
+        sqrButton_.setToggleState(true, juce::dontSendNotification);
+    };
+    addAndMakeVisible(sqrButton_);
 
     addAndMakeVisible(tuningKnob_);
     addAndMakeVisible(cutoffKnob_);
@@ -159,6 +173,9 @@ void TopPanel::paint(juce::Graphics& g)
     TB303LookAndFeel::paintSectionPanel(g, { 225, 5, 295, 150 }, "Filter (VCF)", TB303Colors::blue());
     TB303LookAndFeel::paintSectionPanel(g, { 525, 5, 305, 150 }, "Filter Envelope", TB303Colors::purple());
     TB303LookAndFeel::paintSectionPanel(g, { 835, 5, 185, 150 }, "Mixer (VCA)", TB303Colors::green());
+    g.setColour(TB303Colors::textDim());
+    g.setFont(juce::Font(10.0f, juce::Font::bold));
+    g.drawText("VOLUME", 835, 130, 185, 14, juce::Justification::centred);
 
     // Branding area
     TB303LookAndFeel::paintSectionPanel(g, { 1025, 5, 470, 150 }, "", TB303Colors::cyan());
@@ -193,7 +210,8 @@ void TopPanel::resized()
 {
     // --- Row 1 ---
     // VCO section [5, 5, 215, 150]
-    waveformButton_.setBounds(20, 28, 60, 24);
+    sawButton_.setBounds(20, 28, 55, 24);
+    sqrButton_.setBounds(80, 28, 55, 24);
     tuningKnob_.setBounds(95, 28, 110, 115);
 
     // VCF section [225, 5, 295, 150]
@@ -210,7 +228,7 @@ void TopPanel::resized()
 
     // --- Row 2 ---
     // Clock [5, 160, 215, 145] - BPM painted, tempo knob
-    tempoKnob_.setBounds(30, 242, 160, 55);
+    tempoKnob_.setBounds(55, 230, 120, 70);
 
     // Overdrive [225, 160, 295, 145]
     driveTypeBox_.setBounds(240, 180, 120, 22);
