@@ -64,6 +64,7 @@ private:
     std::atomic<float>* driveTypeParam = nullptr;
     std::atomic<float>* driveToneParam = nullptr;
     std::atomic<float>* driveDepthParam = nullptr;
+    std::atomic<float>* driveLevelParam = nullptr;
     std::atomic<float>* delayTypeParam = nullptr;
     std::atomic<float>* delayTimeParam = nullptr;
     std::atomic<float>* delayLevelParam = nullptr;

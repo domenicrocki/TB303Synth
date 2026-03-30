@@ -12,6 +12,7 @@ public:
     void setDriveType(DriveType type);
     void setDepth(float depth);
     void setTone(float tone);
+    void setLevel(float level);
     float process(float input);
     void reset();
 
@@ -20,6 +21,7 @@ private:
     DriveType driveType_ = DriveType::Soft;
     float depth_ = 0.0f;
     float tone_ = 0.5f;
+    float level_ = 1.0f;
 
     // Tone filter (simple one-pole lowpass)
     float toneFilterState_ = 0.0f;

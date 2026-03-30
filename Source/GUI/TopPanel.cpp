@@ -13,6 +13,7 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
       tempoKnob_("TEMPO", "tempo", processor.getAPVTS()),
       driveDepthKnob_("DRIVE", "driveDepth", processor.getAPVTS()),
       driveToneKnob_("TONE", "driveTone", processor.getAPVTS()),
+      driveLevelKnob_("LEVEL", "driveLevel", processor.getAPVTS()),
       delayTimeKnob_("TIME", "delayTime", processor.getAPVTS()),
       delayLevelKnob_("LEVEL", "delayLevel", processor.getAPVTS()),
       masterTuneKnob_("MASTER\nTUNE", "masterTune", processor.getAPVTS()),
@@ -28,6 +29,7 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     tempoKnob_.setArcColor(TB303Colors::cyan());
     driveDepthKnob_.setArcColor(TB303Colors::orange());
     driveToneKnob_.setArcColor(TB303Colors::orange());
+    driveLevelKnob_.setArcColor(TB303Colors::orange());
     delayTimeKnob_.setArcColor(TB303Colors::orange());
     delayLevelKnob_.setArcColor(TB303Colors::orange());
     masterTuneKnob_.setArcColor(TB303Colors::green());
@@ -68,6 +70,7 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
         apvts_, "driveType", driveTypeBox_);
     addAndMakeVisible(driveDepthKnob_);
     addAndMakeVisible(driveToneKnob_);
+    addAndMakeVisible(driveLevelKnob_);
 
     // Delay
     delayTypeBox_.addItemList(juce::StringArray{ "Digital", "Tape", "PingPong" }, 1);
@@ -211,8 +214,9 @@ void TopPanel::resized()
 
     // Overdrive [225, 160, 295, 145]
     driveTypeBox_.setBounds(240, 180, 120, 22);
-    driveDepthKnob_.setBounds(245, 206, 130, 90);
-    driveToneKnob_.setBounds(380, 206, 130, 90);
+    driveDepthKnob_.setBounds(238, 206, 90, 90);
+    driveToneKnob_.setBounds(330, 206, 90, 90);
+    driveLevelKnob_.setBounds(422, 206, 90, 90);
 
     // Delay [525, 160, 305, 145]
     delayTypeBox_.setBounds(540, 180, 120, 22);

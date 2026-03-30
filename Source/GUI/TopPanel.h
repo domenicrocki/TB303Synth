@@ -45,6 +45,7 @@ private:
     juce::ComboBox driveTypeBox_;
     KnobComponent driveDepthKnob_;
     KnobComponent driveToneKnob_;
+    KnobComponent driveLevelKnob_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> driveTypeAttachment_;
 
     // Delay

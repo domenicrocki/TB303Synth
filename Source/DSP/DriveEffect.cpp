@@ -25,6 +25,11 @@ void DriveEffect::setTone(float tone)
     updateToneFilter();
 }
 
+void DriveEffect::setLevel(float level)
+{
+    level_ = juce::jlimit(0.0f, 1.0f, level);
+}
+
 void DriveEffect::updateToneFilter()
 {
     // Map tone 0-1 to filter coefficient (dark to bright)
@@ -67,8 +72,9 @@ float DriveEffect::process(float input)
     toneFilterState_ += toneCoeff_ * (driven - toneFilterState_);
     float toned = toneFilterState_ + (driven - toneFilterState_) * tone_;
 
-    // Mix: blend between dry and driven based on depth
-    return input * (1.0f - depth_) + toned * depth_;
+    // Mix: blend between dry and driven based on depth, apply output level
+    float mixed = input * (1.0f - depth_) + toned * depth_;
+    return mixed * level_;
 }
 
 void DriveEffect::reset()

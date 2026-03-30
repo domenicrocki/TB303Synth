@@ -18,6 +18,7 @@ TB303AudioProcessor::TB303AudioProcessor()
     driveTypeParam  = apvts_.getRawParameterValue("driveType");
     driveToneParam  = apvts_.getRawParameterValue("driveTone");
     driveDepthParam = apvts_.getRawParameterValue("driveDepth");
+    driveLevelParam = apvts_.getRawParameterValue("driveLevel");
     delayTypeParam  = apvts_.getRawParameterValue("delayType");
     delayTimeParam  = apvts_.getRawParameterValue("delayTime");
     delayLevelParam = apvts_.getRawParameterValue("delayLevel");
@@ -71,6 +72,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout TB303AudioProcessor::createP
 
     params.push_back(std::make_unique<juce::AudioParameterFloat>(
         "driveDepth", "Drive Depth", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.0f));
+
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        "driveLevel", "Drive Level", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
 
     params.push_back(std::make_unique<juce::AudioParameterChoice>(
         "delayType", "Delay Type", juce::StringArray{ "Digital", "Tape", "Ping Pong" }, 0));
@@ -142,6 +146,7 @@ void TB303AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     drive_.setDriveType(static_cast<DriveEffect::DriveType>(static_cast<int>(*driveTypeParam)));
     drive_.setTone(*driveToneParam);
     drive_.setDepth(*driveDepthParam);
+    drive_.setLevel(*driveLevelParam);
 
     // Update delay
     delay_.setDelayType(static_cast<DelayEffect::DelayType>(static_cast<int>(*delayTypeParam)));
