@@ -34,19 +34,18 @@ private:
     LEDButton accentButton_{ "ACCENT" };
     LEDButton slideButton_{ "SLIDE" };
 
-    // Pattern actions
-    juce::TextButton randomizeButton_{ "RANDOMIZE" };
+    // Pattern actions (under "RANDOMIZE" label)
     juce::TextButton generateUndoButton_{ "GENERATE /\nUNDO" };
-    juce::TextButton patternClearButton_{ "PATTERN\nCLEAR" };
-
-    // Row 4
     juce::TextButton modifyUndoButton_{ "MODIFY /\nUNDO" };
+    juce::TextButton patternClearButton_{ "PATTERN\nCLEAR" };
 
     // Step buttons - ALL 16
     juce::OwnedArray<StepButton> stepButtons_;
 
     bool editMode_ = false;
     int editStep_ = 0;
-    Pattern undoPattern_;
-    bool hasUndo_ = false;
+    Pattern generateUndoPattern_;
+    bool hasGenerateUndo_ = false;
+    Pattern modifyUndoPattern_;
+    bool hasModifyUndo_ = false;
 };

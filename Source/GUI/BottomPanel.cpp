@@ -63,43 +63,61 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     slideButton_.setAccentColor(TB303Colors::pink());
     addAndMakeVisible(slideButton_);
 
-    // Pattern actions
-    randomizeButton_.onClick = [this]() {
-        undoPattern_ = processor_.getSequencer().getCurrentPatternRef();
-        hasUndo_ = true;
-        processor_.getSequencer().randomizeCurrentPattern();
-        updateStepDisplay();
-    };
-    addAndMakeVisible(randomizeButton_);
+    // Pattern actions (under painted "RANDOMIZE" label)
 
+    // Generate/Undo: creates a completely new random pattern, Undo reverts
     generateUndoButton_.onClick = [this]() {
-        if (hasUndo_) {
-            processor_.getSequencer().getCurrentPatternRef() = undoPattern_;
-            hasUndo_ = false;
-            updateStepDisplay();
+        if (hasGenerateUndo_) {
+            processor_.getSequencer().getCurrentPatternRef() = generateUndoPattern_;
+            hasGenerateUndo_ = false;
+        } else {
+            generateUndoPattern_ = processor_.getSequencer().getCurrentPatternRef();
+            hasGenerateUndo_ = true;
+            processor_.getSequencer().randomizeCurrentPattern();
         }
+        updateStepDisplay();
     };
     addAndMakeVisible(generateUndoButton_);
 
+    // Modify/Undo: randomly changes only some steps of the current pattern, Undo reverts
+    modifyUndoButton_.onClick = [this]() {
+        if (hasModifyUndo_) {
+            processor_.getSequencer().getCurrentPatternRef() = modifyUndoPattern_;
+            hasModifyUndo_ = false;
+        } else {
+            modifyUndoPattern_ = processor_.getSequencer().getCurrentPatternRef();
+            hasModifyUndo_ = true;
+            auto& pattern = processor_.getSequencer().getCurrentPatternRef();
+            juce::Random rng;
+            for (int i = 0; i < 16; ++i) {
+                if (rng.nextFloat() < 0.35f) {
+                    pattern.steps[i].note = 36 + rng.nextInt(25);
+                    pattern.steps[i].octave = rng.nextInt(3) - 1;
+                    pattern.steps[i].accent = rng.nextFloat() < 0.25f;
+                    pattern.steps[i].slide = rng.nextFloat() < 0.2f;
+                    pattern.steps[i].active = rng.nextFloat() < 0.8f;
+                }
+            }
+        }
+        updateStepDisplay();
+    };
+    addAndMakeVisible(modifyUndoButton_);
+
+    // Pattern Clear: clears all steps
     patternClearButton_.onClick = [this]() {
-        undoPattern_ = processor_.getSequencer().getCurrentPatternRef();
-        hasUndo_ = true;
         auto& pattern = processor_.getSequencer().getCurrentPatternRef();
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < 16; ++i) {
             pattern.steps[i].active = false;
+            pattern.steps[i].note = 60;
+            pattern.steps[i].octave = 0;
+            pattern.steps[i].accent = false;
+            pattern.steps[i].slide = false;
+        }
+        hasGenerateUndo_ = false;
+        hasModifyUndo_ = false;
         updateStepDisplay();
     };
     addAndMakeVisible(patternClearButton_);
-
-    // Row 4 buttons
-    modifyUndoButton_.onClick = [this]() {
-        if (hasUndo_) {
-            processor_.getSequencer().getCurrentPatternRef() = undoPattern_;
-            hasUndo_ = false;
-            updateStepDisplay();
-        }
-    };
-    addAndMakeVisible(modifyUndoButton_);
 
     // ALL 16 step buttons
     for (int i = 0; i < 16; ++i) {
@@ -128,7 +146,7 @@ void BottomPanel::paint(juce::Graphics& g)
     TB303LookAndFeel::paintSectionPanel(g, { 125, 5, 645, 220 }, "Keyboard", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 775, 5, 145, 220 }, "Octave", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 925, 5, 175, 220 }, "Articulation", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Pattern", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Randomize", TB303Colors::pink());
 
     // Note name labels above keyboard
     g.setColour(TB303Colors::textDim());
@@ -182,14 +200,10 @@ void BottomPanel::resized()
     accentButton_.setBounds(940, 40, 70, 80);
     slideButton_.setBounds(1015, 40, 70, 80);
 
-    // Pattern [1105, 5, 390, 220]
-    randomizeButton_.setBounds(1120, 30, 110, 50);
-    generateUndoButton_.setBounds(1120, 90, 110, 50);
-    patternClearButton_.setBounds(1120, 150, 110, 50);
-
-    // Row 4 - left column [10, 230, 110, 235]
-    // Modify/Undo in Pattern section (right side)
-    modifyUndoButton_.setBounds(1240, 150, 110, 50);
+    // Pattern [1105, 5, 390, 220] - "RANDOMIZE" painted as label in paint()
+    generateUndoButton_.setBounds(1120, 50, 170, 48);
+    modifyUndoButton_.setBounds(1120, 106, 170, 48);
+    patternClearButton_.setBounds(1120, 162, 170, 48);
 
     // Step buttons [125, 230, 1370, 235] - 16 buttons
     int stepStartX = 230;
