@@ -1,55 +1,70 @@
 #pragma once
 #include <JuceHeader.h>
 #include "KnobComponent.h"
+#include "../PluginProcessor.h"
 
-class TopPanel : public juce::Component
+class TopPanel : public juce::Component, public juce::Timer
 {
 public:
-    TopPanel(juce::AudioProcessorValueTreeState& apvts);
+    TopPanel(TB303AudioProcessor& processor);
     ~TopPanel() override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
+    void timerCallback() override;
+    void updatePatchList();
 
 private:
+    TB303AudioProcessor& processor_;
     juce::AudioProcessorValueTreeState& apvts_;
 
-    // Waveform toggle
+    // --- Row 1 ---
+    // VCO
     juce::TextButton waveformButton_;
     int currentWaveform_ = 0;
-
-    // Main synth knobs
     KnobComponent tuningKnob_;
+
+    // VCF
     KnobComponent cutoffKnob_;
     KnobComponent resonanceKnob_;
+
+    // Filter Envelope
     KnobComponent envModKnob_;
     KnobComponent decayKnob_;
     KnobComponent accentKnob_;
 
-    // Master section
-    KnobComponent masterTuneKnob_;
+    // VCA
+    juce::Slider volumeSlider_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> volumeAttachment_;
 
-    // VCF Trim and Condition (cosmetic small knobs)
-    juce::Slider vcfTrimSlider_;
-    juce::Slider conditionSlider_;
+    // --- Row 2 ---
+    // Clock
+    KnobComponent tempoKnob_;
 
-    // Drive section
+    // Overdrive
     juce::ComboBox driveTypeBox_;
-    KnobComponent driveToneKnob_;
     KnobComponent driveDepthKnob_;
+    KnobComponent driveToneKnob_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> driveTypeAttachment_;
 
-    // Delay section
+    // Delay
     juce::ComboBox delayTypeBox_;
     KnobComponent delayTimeKnob_;
     KnobComponent delayLevelKnob_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> delayTypeAttachment_;
-
-    // Tempo sync
     juce::ToggleButton tempoSyncButton_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tempoSyncAttachment_;
 
-    // Volume (large knob - custom painted)
-    juce::Slider volumeSlider_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> volumeAttachment_;
+    // Master
+    KnobComponent masterTuneKnob_;
+    KnobComponent shuffleKnob_;
+
+    // Sequencer section
+    juce::ComboBox scaleBox_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment_;
+    juce::ComboBox playModeBox_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> playModeAttachment_;
+    juce::ComboBox patternList_;
+    juce::ComboBox patchList_;
+    juce::OwnedArray<juce::TextButton> bankButtons_;
 };

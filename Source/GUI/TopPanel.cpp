@@ -1,20 +1,39 @@
 #include "TopPanel.h"
 #include "TB303LookAndFeel.h"
 
-TopPanel::TopPanel(juce::AudioProcessorValueTreeState& apvts)
-    : apvts_(apvts),
-      tuningKnob_("TUNING", "tuning", apvts),
-      cutoffKnob_("CUT OFF FREQ", "cutoff", apvts),
-      resonanceKnob_("RESONANCE", "resonance", apvts),
-      envModKnob_("ENV MOD", "envMod", apvts),
-      decayKnob_("DECAY", "decay", apvts),
-      accentKnob_("ACCENT", "accent", apvts),
-      masterTuneKnob_("MASTER\nTUNE", "masterTune", apvts),
-      driveToneKnob_("TONE", "driveTone", apvts),
-      driveDepthKnob_("DEPTH", "driveDepth", apvts),
-      delayTimeKnob_("TIME", "delayTime", apvts),
-      delayLevelKnob_("LEVEL", "delayLevel", apvts)
+TopPanel::TopPanel(TB303AudioProcessor& processor)
+    : processor_(processor),
+      apvts_(processor.getAPVTS()),
+      tuningKnob_("TUNING", "tuning", processor.getAPVTS()),
+      cutoffKnob_("CUT OFF FREQ", "cutoff", processor.getAPVTS()),
+      resonanceKnob_("RESONANCE", "resonance", processor.getAPVTS()),
+      envModKnob_("ENV MOD", "envMod", processor.getAPVTS()),
+      decayKnob_("DECAY", "decay", processor.getAPVTS()),
+      accentKnob_("ACCENT", "accent", processor.getAPVTS()),
+      tempoKnob_("TEMPO", "tempo", processor.getAPVTS()),
+      driveDepthKnob_("DRIVE", "driveDepth", processor.getAPVTS()),
+      driveToneKnob_("TONE", "driveTone", processor.getAPVTS()),
+      delayTimeKnob_("TIME", "delayTime", processor.getAPVTS()),
+      delayLevelKnob_("LEVEL", "delayLevel", processor.getAPVTS()),
+      masterTuneKnob_("MASTER\nTUNE", "masterTune", processor.getAPVTS()),
+      shuffleKnob_("SHUFFLE", "shuffle", processor.getAPVTS())
 {
+    // Set arc colors per section
+    tuningKnob_.setArcColor(TB303Colors::cyan());
+    cutoffKnob_.setArcColor(TB303Colors::blue());
+    resonanceKnob_.setArcColor(TB303Colors::blue());
+    envModKnob_.setArcColor(TB303Colors::purple());
+    decayKnob_.setArcColor(TB303Colors::purple());
+    accentKnob_.setArcColor(TB303Colors::purple());
+    tempoKnob_.setArcColor(TB303Colors::cyan());
+    driveDepthKnob_.setArcColor(TB303Colors::orange());
+    driveToneKnob_.setArcColor(TB303Colors::orange());
+    delayTimeKnob_.setArcColor(TB303Colors::orange());
+    delayLevelKnob_.setArcColor(TB303Colors::orange());
+    masterTuneKnob_.setArcColor(TB303Colors::green());
+    shuffleKnob_.setArcColor(TB303Colors::green());
+
+    // VCO waveform button
     waveformButton_.setButtonText("SAW");
     waveformButton_.onClick = [this]() {
         currentWaveform_ = 1 - currentWaveform_;
@@ -29,171 +48,195 @@ TopPanel::TopPanel(juce::AudioProcessorValueTreeState& apvts)
     addAndMakeVisible(envModKnob_);
     addAndMakeVisible(decayKnob_);
     addAndMakeVisible(accentKnob_);
-    addAndMakeVisible(masterTuneKnob_);
 
-    // VCF Trim (cosmetic, not attached to APVTS)
-    vcfTrimSlider_.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    vcfTrimSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    vcfTrimSlider_.setRange(0.0, 1.0, 0.01);
-    vcfTrimSlider_.setValue(0.5);
-    addAndMakeVisible(vcfTrimSlider_);
-
-    // Condition (cosmetic, not attached to APVTS)
-    conditionSlider_.setSliderStyle(juce::Slider::RotaryVerticalDrag);
-    conditionSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    conditionSlider_.setRange(0.0, 1.0, 0.01);
-    conditionSlider_.setValue(0.5);
-    addAndMakeVisible(conditionSlider_);
-
-    driveTypeBox_.addItemList(juce::StringArray{ "Soft", "Hard", "Tube" }, 1);
-    addAndMakeVisible(driveTypeBox_);
-    driveTypeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        apvts, "driveType", driveTypeBox_);
-    addAndMakeVisible(driveToneKnob_);
-    addAndMakeVisible(driveDepthKnob_);
-
-    delayTypeBox_.addItemList(juce::StringArray{ "Digital", "Tape", "PingPong" }, 1);
-    addAndMakeVisible(delayTypeBox_);
-    delayTypeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        apvts, "delayType", delayTypeBox_);
-    addAndMakeVisible(delayTimeKnob_);
-    addAndMakeVisible(delayLevelKnob_);
-
-    tempoSyncButton_.setButtonText("OFF  ON");
-    addAndMakeVisible(tempoSyncButton_);
-    tempoSyncAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-        apvts, "tempoSync", tempoSyncButton_);
-
+    // Volume
     volumeSlider_.setSliderStyle(juce::Slider::RotaryVerticalDrag);
     volumeSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     volumeSlider_.setPopupDisplayEnabled(true, true, this);
+    volumeSlider_.getProperties().set("arcColor", (juce::int64)TB303Colors::green().getARGB());
     addAndMakeVisible(volumeSlider_);
     volumeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        apvts, "volume", volumeSlider_);
+        apvts_, "volume", volumeSlider_);
+
+    // Clock / Tempo
+    addAndMakeVisible(tempoKnob_);
+
+    // Overdrive
+    driveTypeBox_.addItemList(juce::StringArray{ "Soft", "Hard", "Tube" }, 1);
+    addAndMakeVisible(driveTypeBox_);
+    driveTypeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts_, "driveType", driveTypeBox_);
+    addAndMakeVisible(driveDepthKnob_);
+    addAndMakeVisible(driveToneKnob_);
+
+    // Delay
+    delayTypeBox_.addItemList(juce::StringArray{ "Digital", "Tape", "PingPong" }, 1);
+    addAndMakeVisible(delayTypeBox_);
+    delayTypeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts_, "delayType", delayTypeBox_);
+    addAndMakeVisible(delayTimeKnob_);
+    addAndMakeVisible(delayLevelKnob_);
+
+    tempoSyncButton_.setButtonText("SYNC");
+    addAndMakeVisible(tempoSyncButton_);
+    tempoSyncAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        apvts_, "tempoSync", tempoSyncButton_);
+
+    // Master
+    addAndMakeVisible(masterTuneKnob_);
+    addAndMakeVisible(shuffleKnob_);
+
+    // Sequencer section
+    scaleBox_.addItemList(juce::StringArray{ "1/16", "1/16T", "1/32" }, 1);
+    addAndMakeVisible(scaleBox_);
+    scaleAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts_, "scale", scaleBox_);
+
+    playModeBox_.addItemList(juce::StringArray{ "FWD", "REV", "FWD&REV", "INVERT", "RANDOM" }, 1);
+    addAndMakeVisible(playModeBox_);
+    playModeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        apvts_, "playMode", playModeBox_);
+
+    // Pattern list
+    for (int i = 0; i < 8; ++i)
+        patternList_.addItem("Pattern " + juce::String(i + 1), i + 1);
+    patternList_.setSelectedId(1);
+    addAndMakeVisible(patternList_);
+    patternList_.onChange = [this]() {
+        processor_.getSequencer().setCurrentPattern(patternList_.getSelectedId() - 1);
+    };
+
+    // Patch list
+    updatePatchList();
+    addAndMakeVisible(patchList_);
+    patchList_.onChange = [this]() {
+        int sel = patchList_.getSelectedId() - 1;
+        if (sel >= 0) processor_.loadPatch(sel);
+    };
+
+    // Bank buttons
+    for (int i = 0; i < 8; ++i) {
+        auto* btn = new juce::TextButton(juce::String(i + 1));
+        btn->onClick = [this, i]() {
+            processor_.getSequencer().setCurrentBank(i);
+            for (int j = 0; j < 8; ++j)
+                bankButtons_[j]->setToggleState(j == i, juce::dontSendNotification);
+        };
+        btn->setClickingTogglesState(false);
+        bankButtons_.add(btn);
+        addAndMakeVisible(btn);
+    }
+    if (bankButtons_.size() > 0)
+        bankButtons_[0]->setToggleState(true, juce::dontSendNotification);
+
+    startTimerHz(15);
 }
 
-TopPanel::~TopPanel() {}
+TopPanel::~TopPanel() { stopTimer(); }
+
+void TopPanel::updatePatchList()
+{
+    patchList_.clear();
+    auto names = processor_.getPresetManager().getPatchNames();
+    for (int i = 0; i < names.size(); ++i)
+        patchList_.addItem(names[i], i + 1);
+    if (names.size() > 0)
+        patchList_.setSelectedId(1, juce::dontSendNotification);
+}
+
+void TopPanel::timerCallback()
+{
+    repaint(); // update BPM display
+}
 
 void TopPanel::paint(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
-    TB303LookAndFeel::paintSilverBg(g, bounds, false);
+    // Row 1 panels
+    TB303LookAndFeel::paintSectionPanel(g, { 5, 5, 215, 150 }, "Oscillator (VCO)", TB303Colors::cyan());
+    TB303LookAndFeel::paintSectionPanel(g, { 225, 5, 295, 150 }, "Filter (VCF)", TB303Colors::blue());
+    TB303LookAndFeel::paintSectionPanel(g, { 525, 5, 305, 150 }, "Filter Envelope", TB303Colors::purple());
+    TB303LookAndFeel::paintSectionPanel(g, { 835, 5, 185, 150 }, "Mixer (VCA)", TB303Colors::green());
 
-    // --- Far left: WAVEFORM label + wave icons + Rocki logo ---
-    g.setColour(TB303LookAndFeel::textDk());
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawText("WAVEFORM", 10, 10, 90, 12, juce::Justification::centred);
+    // Branding area
+    TB303LookAndFeel::paintSectionPanel(g, { 1025, 5, 470, 150 }, "", TB303Colors::cyan());
+    g.setColour(TB303Colors::cyan());
+    g.setFont(juce::Font(42.0f, juce::Font::bold));
+    g.drawText("Rocki", 1040, 20, 200, 45, juce::Justification::centredLeft);
+    g.setColour(TB303Colors::textBright());
+    g.setFont(juce::Font(28.0f, juce::Font::bold));
+    g.drawText("TB-303", 1040, 65, 200, 35, juce::Justification::centredLeft);
+    g.setColour(TB303Colors::textDim());
+    g.setFont(juce::Font(12.0f));
+    g.drawText("Computer Controlled", 1040, 100, 200, 18, juce::Justification::centredLeft);
 
-    // Wave icons (sawtooth + square simplified)
-    g.setColour(TB303LookAndFeel::textDk().withAlpha(0.7f));
-    // Sawtooth icon
-    {
-        juce::Path saw;
-        saw.startNewSubPath(18.0f, 48.0f);
-        saw.lineTo(38.0f, 30.0f);
-        saw.lineTo(38.0f, 48.0f);
-        saw.lineTo(58.0f, 30.0f);
-        saw.lineTo(58.0f, 48.0f);
-        g.strokePath(saw, juce::PathStrokeType(1.5f));
-    }
-    // Square icon
-    {
-        juce::Path sqr;
-        sqr.startNewSubPath(62.0f, 48.0f);
-        sqr.lineTo(62.0f, 30.0f);
-        sqr.lineTo(74.0f, 30.0f);
-        sqr.lineTo(74.0f, 48.0f);
-        sqr.lineTo(86.0f, 48.0f);
-        sqr.lineTo(86.0f, 30.0f);
-        sqr.lineTo(98.0f, 30.0f);
-        g.strokePath(sqr, juce::PathStrokeType(1.5f));
-    }
+    // Row 2 panels
+    TB303LookAndFeel::paintSectionPanel(g, { 5, 160, 215, 145 }, "Clock", TB303Colors::cyan());
+    TB303LookAndFeel::paintSectionPanel(g, { 225, 160, 295, 145 }, "Overdrive", TB303Colors::orange());
+    TB303LookAndFeel::paintSectionPanel(g, { 525, 160, 305, 145 }, "Delay", TB303Colors::orange());
+    TB303LookAndFeel::paintSectionPanel(g, { 835, 160, 185, 145 }, "Master", TB303Colors::green());
+    TB303LookAndFeel::paintSectionPanel(g, { 1025, 160, 470, 145 }, "Sequencer", TB303Colors::pink());
 
-    // Rocki logo
-    g.setColour(TB303LookAndFeel::textDk());
-    g.setFont(juce::Font(32.0f, juce::Font::bold));
-    g.drawText("Rocki", 10, 80, 110, 36, juce::Justification::centred);
-
-    // --- Vertical separators ---
-    auto drawSep = [&](float x) {
-        g.setColour(juce::Colour(0xFF909098));
-        g.drawLine(x, 10.0f, x, bounds.getHeight() - 10.0f, 1.0f);
-    };
-
-    float sep1X = 750.0f;
-    float sep2X = 900.0f;
-    float sep3X = 1060.0f;
-    float sep4X = 1230.0f;
-    float sep5X = 1370.0f;
-
-    drawSep(sep1X);
-    drawSep(sep2X);
-    drawSep(sep3X);
-    drawSep(sep4X);
-    drawSep(sep5X);
-
-    // --- Master Tune section labels ---
-    g.setColour(TB303LookAndFeel::textDk());
-    g.setFont(juce::Font(8.0f, juce::Font::bold));
-    g.drawText("MASTER TUNE", 758, 10, 80, 10, juce::Justification::centred);
-    g.drawText("VCF TRIM", 758, 60, 80, 10, juce::Justification::centred);
-    g.drawText("CONDITION", 848, 60, 45, 10, juce::Justification::centred);
-
-    // --- Drive section label ---
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawText("DRIVE TYPE", 908, 10, 100, 12, juce::Justification::centred);
-
-    // --- Delay section label ---
-    g.drawText("DELAY TYPE", 1068, 10, 100, 12, juce::Justification::centred);
-
-    // --- Tempo Sync label ---
-    g.setFont(juce::Font(8.0f, juce::Font::bold));
-    g.drawText("TEMPO SYNC", 1238, 10, 80, 10, juce::Justification::centred);
-
-    // --- Volume label ---
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
-    g.drawText("VOLUME", 1378, 10, 110, 14, juce::Justification::centred);
+    // BPM display in Clock section
+    float bpm = *apvts_.getRawParameterValue("tempo");
+    g.setColour(TB303Colors::cyan());
+    g.setFont(juce::Font(36.0f, juce::Font::bold));
+    g.drawText(juce::String(bpm, 1), 15, 180, 195, 50, juce::Justification::centred);
+    g.setColour(TB303Colors::textDim());
+    g.setFont(juce::Font(11.0f));
+    g.drawText("BPM", 15, 228, 195, 16, juce::Justification::centred);
 }
 
 void TopPanel::resized()
 {
-    int knobW = 88;
-    int knobH = 88;
-    int smallKnobW = 55;
-    int smallKnobH = 60;
-    int topY = 24;
+    // --- Row 1 ---
+    // VCO section [5, 5, 215, 150]
+    waveformButton_.setBounds(20, 28, 60, 24);
+    tuningKnob_.setBounds(95, 28, 110, 115);
 
-    // Waveform button
-    waveformButton_.setBounds(30, 52, 50, 22);
+    // VCF section [225, 5, 295, 150]
+    cutoffKnob_.setBounds(240, 28, 130, 115);
+    resonanceKnob_.setBounds(375, 28, 130, 115);
 
-    // 6 main knobs
-    int x = 128;
-    int gap = 8;
-    tuningKnob_.setBounds(x, topY, knobW, knobH); x += knobW + gap;
-    cutoffKnob_.setBounds(x, topY, knobW, knobH); x += knobW + gap;
-    resonanceKnob_.setBounds(x, topY, knobW, knobH); x += knobW + gap;
-    envModKnob_.setBounds(x, topY, knobW, knobH); x += knobW + gap;
-    decayKnob_.setBounds(x, topY, knobW, knobH); x += knobW + gap;
-    accentKnob_.setBounds(x, topY, knobW, knobH);
+    // Filter Envelope [525, 5, 305, 150]
+    envModKnob_.setBounds(535, 28, 90, 115);
+    decayKnob_.setBounds(630, 28, 90, 115);
+    accentKnob_.setBounds(725, 28, 90, 115);
 
-    // Master Tune section (between sep1 750 and sep2 900)
-    masterTuneKnob_.setBounds(762, topY, smallKnobW + 15, smallKnobH);
-    vcfTrimSlider_.setBounds(762, 72, 45, 45);
-    conditionSlider_.setBounds(845, 72, 45, 45);
+    // VCA [835, 5, 185, 150]
+    volumeSlider_.setBounds(865, 30, 120, 115);
 
-    // Drive section (between sep2 900 and sep3 1060)
-    driveTypeBox_.setBounds(920, topY + 4, 120, 22);
-    driveToneKnob_.setBounds(920, topY + 36, smallKnobW + 10, smallKnobH + 10);
-    driveDepthKnob_.setBounds(990, topY + 36, smallKnobW + 10, smallKnobH + 10);
+    // --- Row 2 ---
+    // Clock [5, 160, 215, 145] - BPM painted, tempo knob
+    tempoKnob_.setBounds(30, 242, 160, 55);
 
-    // Delay section (between sep3 1060 and sep4 1230)
-    delayTypeBox_.setBounds(1082, topY + 4, 120, 22);
-    delayTimeKnob_.setBounds(1082, topY + 36, smallKnobW + 10, smallKnobH + 10);
-    delayLevelKnob_.setBounds(1152, topY + 36, smallKnobW + 10, smallKnobH + 10);
+    // Overdrive [225, 160, 295, 145]
+    driveTypeBox_.setBounds(240, 180, 120, 22);
+    driveDepthKnob_.setBounds(245, 206, 130, 90);
+    driveToneKnob_.setBounds(380, 206, 130, 90);
 
-    // Tempo Sync toggle (between sep4 1230 and sep5 1370)
-    tempoSyncButton_.setBounds(1250, topY + 20, 100, 30);
+    // Delay [525, 160, 305, 145]
+    delayTypeBox_.setBounds(540, 180, 120, 22);
+    delayTimeKnob_.setBounds(540, 206, 90, 90);
+    delayLevelKnob_.setBounds(635, 206, 90, 90);
+    tempoSyncButton_.setBounds(735, 210, 80, 24);
 
-    // Volume large knob (after sep5 1370)
-    volumeSlider_.setBounds(1388, topY + 10, 100, 100);
+    // Master [835, 160, 185, 145]
+    masterTuneKnob_.setBounds(845, 180, 80, 90);
+    shuffleKnob_.setBounds(930, 180, 80, 90);
+
+    // Sequencer [1025, 160, 470, 145]
+    scaleBox_.setBounds(1040, 180, 90, 22);
+    playModeBox_.setBounds(1140, 180, 100, 22);
+
+    patternList_.setBounds(1040, 210, 150, 22);
+    patchList_.setBounds(1040, 238, 150, 22);
+
+    // Bank buttons in sequencer section
+    int bankX = 1200;
+    int bankW = 32;
+    int bankH = 22;
+    for (int i = 0; i < 4; ++i)
+        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), 210, bankW, bankH);
+    for (int i = 4; i < 8; ++i)
+        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), 238, bankW, bankH);
 }

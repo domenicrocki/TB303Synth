@@ -10,6 +10,7 @@ public:
 
     void resized() override;
     void setLabelBelow(bool below) { labelBelow_ = below; resized(); }
+    void setArcColor(juce::Colour c);
 
     juce::Slider& getSlider() { return slider_; }
 

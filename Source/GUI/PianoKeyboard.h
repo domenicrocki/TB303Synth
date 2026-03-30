@@ -13,19 +13,19 @@ public:
     void setBaseOctave(int octave) { baseOctave_ = octave; repaint(); }
     int getBaseOctave() const { return baseOctave_; }
 
-    std::function<void(int)> onNoteOn;   // MIDI note
+    std::function<void(int)> onNoteOn;
     std::function<void(int)> onNoteOff;
 
 private:
     int getNoteForPosition(juce::Point<float> pos) const;
 
-    int baseOctave_ = 3; // C3
+    int baseOctave_ = 3;
     int pressedNote_ = -1;
 
     struct KeyInfo {
         juce::Rectangle<float> bounds;
         bool isBlack;
-        int noteOffset; // semitones from C
+        int noteOffset;
     };
     std::vector<KeyInfo> keys_;
     void buildKeyLayout();

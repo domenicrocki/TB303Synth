@@ -3,7 +3,7 @@
 TB303AudioProcessorEditor::TB303AudioProcessorEditor(TB303AudioProcessor& p)
     : AudioProcessorEditor(&p),
       processor_(p),
-      topPanel_(p.getAPVTS()),
+      topPanel_(p),
       middlePanel_(p),
       bottomPanel_(p)
 {
@@ -23,23 +23,18 @@ TB303AudioProcessorEditor::~TB303AudioProcessorEditor()
 
 void TB303AudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(TB303LookAndFeel::silver());
-
-    // Outer border
-    auto bounds = getLocalBounds().toFloat();
-    g.setColour(juce::Colour(0xFF909098));
-    g.drawRect(bounds, 1.0f);
+    g.fillAll(TB303Colors::background());
 }
 
 void TB303AudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
 
-    int topHeight    = 160;
-    int middleHeight = 130;
+    int topHeight    = 310;
+    int middleHeight = 0;
     int bottomHeight = bounds.getHeight() - topHeight - middleHeight;
 
     topPanel_.setBounds(bounds.removeFromTop(topHeight));
     middlePanel_.setBounds(bounds.removeFromTop(middleHeight));
-    bottomPanel_.setBounds(bounds);
+    bottomPanel_.setBounds(bounds.withHeight(bottomHeight));
 }

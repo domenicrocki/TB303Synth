@@ -41,7 +41,6 @@ void PianoKeyboard::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    // White keys first
     for (auto& key : keys_)
     {
         if (key.isBlack) continue;
@@ -54,26 +53,22 @@ void PianoKeyboard::paint(juce::Graphics& g)
         int midiNote = baseOctave_ * 12 + key.noteOffset;
         bool pressed = (midiNote == pressedNote_);
 
-        // Classic white key look
         if (pressed)
         {
             g.setColour(juce::Colour(0xFFCCCCD0));
         }
         else
         {
-            // White key with slight gradient for 3D effect
             juce::ColourGradient wGrad(juce::Colour(0xFFF8F8FA), keyBounds.getX(), keyBounds.getY(),
                                         juce::Colour(0xFFE8E8EC), keyBounds.getX(), keyBounds.getBottom(), false);
             g.setGradientFill(wGrad);
         }
         g.fillRect(keyBounds.reduced(0.5f));
 
-        // White key border
         g.setColour(juce::Colour(0xFF606068));
         g.drawRect(keyBounds, 1.0f);
     }
 
-    // Black keys on top
     for (auto& key : keys_)
     {
         if (!key.isBlack) continue;
@@ -86,7 +81,6 @@ void PianoKeyboard::paint(juce::Graphics& g)
         int midiNote = baseOctave_ * 12 + key.noteOffset;
         bool pressed = (midiNote == pressedNote_);
 
-        // Classic black key with gradient
         {
             juce::ColourGradient bGrad(pressed ? juce::Colour(0xFF404048) : juce::Colour(0xFF303038),
                                         keyBounds.getX(), keyBounds.getY(),
@@ -96,12 +90,10 @@ void PianoKeyboard::paint(juce::Graphics& g)
         }
         g.fillRect(keyBounds);
 
-        // Slight highlight at top of black key
         g.setColour(juce::Colour(0xFF484850));
         g.drawLine(keyBounds.getX() + 1, keyBounds.getY() + 1,
                    keyBounds.getRight() - 1, keyBounds.getY() + 1, 0.7f);
 
-        // Black key border
         g.setColour(juce::Colour(0xFF101018));
         g.drawRect(keyBounds, 1.0f);
     }
@@ -113,7 +105,6 @@ int PianoKeyboard::getNoteForPosition(juce::Point<float> pos) const
     float normX = (pos.x - bounds.getX()) / bounds.getWidth();
     float normY = (pos.y - bounds.getY()) / bounds.getHeight();
 
-    // Check black keys first (they're on top)
     for (int i = static_cast<int>(keys_.size()) - 1; i >= 0; --i)
     {
         if (!keys_[static_cast<size_t>(i)].isBlack) continue;

@@ -3,176 +3,199 @@
 TB303LookAndFeel::TB303LookAndFeel()
 {
     setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-    setColour(juce::Label::textColourId, textDk());
-    setColour(juce::ComboBox::backgroundColourId, dispBg());
-    setColour(juce::ComboBox::outlineColourId, juce::Colour(0xFF808080));
-    setColour(juce::ComboBox::textColourId, textDk());
-    setColour(juce::PopupMenu::backgroundColourId, dispBg());
-    setColour(juce::PopupMenu::textColourId, textDk());
-    setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(0xFF4060A0));
+    setColour(juce::Label::textColourId, TB303Colors::textBright());
+    setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xFF1A1A28));
+    setColour(juce::ComboBox::outlineColourId, TB303Colors::panelBorder());
+    setColour(juce::ComboBox::textColourId, TB303Colors::textBright());
+    setColour(juce::ComboBox::arrowColourId, TB303Colors::textDim());
+    setColour(juce::PopupMenu::backgroundColourId, juce::Colour(0xFF1A1A28));
+    setColour(juce::PopupMenu::textColourId, TB303Colors::textBright());
+    setColour(juce::PopupMenu::highlightedBackgroundColourId, TB303Colors::cyan().withAlpha(0.3f));
     setColour(juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
+    setColour(juce::TextButton::buttonColourId, juce::Colour(0xFF1E1E2E));
+    setColour(juce::TextButton::textColourOffId, TB303Colors::textBright());
+    setColour(juce::TextButton::textColourOnId, TB303Colors::cyan());
 }
 
 void TB303LookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w, int h,
-                                         float pos, float startA, float endA, juce::Slider&)
+                                         float pos, float startA, float endA, juce::Slider& slider)
 {
-    auto bounds = juce::Rectangle<int>(x, y, w, h).toFloat().reduced(2.0f);
+    auto bounds = juce::Rectangle<int>(x, y, w, h).toFloat().reduced(4.0f);
     auto r = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
     auto cx = bounds.getCentreX(), cy = bounds.getCentreY();
     auto angle = startA + pos * (endA - startA);
-    paintMetalKnob(g, cx, cy, r, angle);
-}
 
-void TB303LookAndFeel::paintMetalKnob(juce::Graphics& g, float cx, float cy, float r, float angle)
-{
-    // Shadow
-    g.setColour(juce::Colour(0x30000000));
-    g.fillEllipse(cx - r + 1, cy - r + 2, r * 2, r * 2);
+    juce::Colour arcColor = TB303Colors::cyan();
+    auto* prop = slider.getProperties().getVarPointer("arcColor");
+    if (prop != nullptr && prop->isInt64())
+        arcColor = juce::Colour(static_cast<juce::uint32>(static_cast<juce::int64>(*prop)));
 
-    // Outer ring
+    float trackThickness = juce::jmax(2.5f, r * 0.12f);
+    g.setColour(TB303Colors::knobTrack());
+    juce::Path trackArc;
+    trackArc.addCentredArc(cx, cy, r - 2.0f, r - 2.0f, 0.0f, startA, endA, true);
+    g.strokePath(trackArc, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
+                                                  juce::PathStrokeType::rounded));
+
+    if (pos > 0.001f)
     {
-        juce::ColourGradient gr(juce::Colour(0xFFE8E8EC), cx - r * 0.6f, cy - r * 0.6f,
-                                 juce::Colour(0xFF808088), cx + r * 0.6f, cy + r * 0.6f, true);
-        g.setGradientFill(gr);
-        g.fillEllipse(cx - r, cy - r, r * 2, r * 2);
-    }
-    g.setColour(juce::Colour(0xFF606068));
-    g.drawEllipse(cx - r, cy - r, r * 2, r * 2, 1.2f);
-
-    // Inner cap
-    auto ir = r * 0.72f;
-    {
-        juce::ColourGradient gr(juce::Colour(0xFFD8D8E0), cx - ir * 0.4f, cy - ir * 0.4f,
-                                 juce::Colour(0xFF909098), cx + ir * 0.4f, cy + ir * 0.4f, true);
-        g.setGradientFill(gr);
-        g.fillEllipse(cx - ir, cy - ir, ir * 2, ir * 2);
+        g.setColour(arcColor);
+        juce::Path activeArc;
+        activeArc.addCentredArc(cx, cy, r - 2.0f, r - 2.0f, 0.0f, startA, angle, true);
+        g.strokePath(activeArc, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
+                                                      juce::PathStrokeType::rounded));
     }
 
-    // Indicator line
-    auto len = r * 0.85f;
-    auto thick = juce::jmax(1.8f, r * 0.08f);
+    float knobR = r * 0.65f;
+    g.setColour(TB303Colors::knobBody());
+    g.fillEllipse(cx - knobR, cy - knobR, knobR * 2, knobR * 2);
+
+    g.setColour(TB303Colors::panelBorder());
+    g.drawEllipse(cx - knobR, cy - knobR, knobR * 2, knobR * 2, 1.0f);
+
+    float thick = juce::jmax(2.0f, r * 0.08f);
+    float lineLen = knobR * 0.8f;
     juce::Path ind;
-    ind.addRoundedRectangle(-thick * 0.5f, -len, thick, len * 0.4f, 1.0f);
-    g.setColour(juce::Colours::white);
+    ind.addRoundedRectangle(-thick * 0.5f, -knobR + 2.0f, thick, lineLen, 1.0f);
+    g.setColour(arcColor);
     g.fillPath(ind, juce::AffineTransform::rotation(angle).translated(cx, cy));
-
-    g.setColour(juce::Colour(0xFF505058));
-    g.fillEllipse(cx - 1.5f, cy - 1.5f, 3, 3);
-}
-
-void TB303LookAndFeel::paintLargeKnob(juce::Graphics& g, float cx, float cy, float r,
-                                        float pos, float startA, float endA)
-{
-    auto angle = startA + pos * (endA - startA);
-    g.setColour(juce::Colour(0xFF606068));
-    g.drawEllipse(cx - r, cy - r, r * 2, r * 2, 2);
-
-    int ticks = 31;
-    for (int i = 0; i < ticks; ++i)
-    {
-        float ta = startA + (float(i) / float(ticks - 1)) * (endA - startA);
-        float ri = r - 4, ro = r;
-        g.setColour(juce::Colour(0xFF505058));
-        g.drawLine(cx + ri * std::sin(ta), cy - ri * std::cos(ta),
-                   cx + ro * std::sin(ta), cy - ro * std::cos(ta), 0.7f);
-    }
-
-    auto kr = r * 0.8f;
-    {
-        juce::ColourGradient gr(juce::Colour(0xFFE0E0E8), cx - kr * 0.5f, cy - kr * 0.5f,
-                                 juce::Colour(0xFF8A8A92), cx + kr * 0.5f, cy + kr * 0.5f, true);
-        g.setGradientFill(gr);
-        g.fillEllipse(cx - kr, cy - kr, kr * 2, kr * 2);
-    }
-
-    juce::Path ind;
-    ind.addRoundedRectangle(-1.5f, -kr * 0.88f, 3, kr * 0.35f, 1);
-    g.setColour(juce::Colours::white);
-    g.fillPath(ind, juce::AffineTransform::rotation(angle).translated(cx, cy));
-}
-
-void TB303LookAndFeel::paintLED(juce::Graphics& g, float x, float y, float sz, bool on)
-{
-    if (on)
-    {
-        g.setColour(ledOn().withAlpha(0.25f));
-        g.fillEllipse(x - 2, y - 2, sz + 4, sz + 4);
-    }
-    g.setColour(on ? ledOn() : ledOff());
-    g.fillEllipse(x, y, sz, sz);
-}
-
-void TB303LookAndFeel::paint3DButton(juce::Graphics& g, juce::Rectangle<float> b, bool pressed)
-{
-    g.setColour(pressed ? silverDk() : silver());
-    g.fillRoundedRectangle(b, 2);
-    g.setColour(pressed ? juce::Colour(0xFF909098) : silverLt());
-    g.drawLine(b.getX() + 1, b.getY() + 1, b.getRight() - 1, b.getY() + 1, 1);
-    g.drawLine(b.getX() + 1, b.getY() + 1, b.getX() + 1, b.getBottom() - 1, 1);
-    g.setColour(pressed ? silverLt() : juce::Colour(0xFF808088));
-    g.drawLine(b.getX() + 1, b.getBottom() - 1, b.getRight() - 1, b.getBottom() - 1, 1);
-    g.drawLine(b.getRight() - 1, b.getY() + 1, b.getRight() - 1, b.getBottom() - 1, 1);
-}
-
-void TB303LookAndFeel::paintSilverBg(juce::Graphics& g, juce::Rectangle<float> b, bool darker)
-{
-    auto top = darker ? juce::Colour(0xFFCCCCD0) : juce::Colour(0xFFDADADE);
-    auto bot = darker ? juce::Colour(0xFFBABABE) : juce::Colour(0xFFC6C6CA);
-    juce::ColourGradient gr(top, 0, b.getY(), bot, 0, b.getBottom(), false);
-    g.setGradientFill(gr);
-    g.fillRect(b);
-    g.setColour(silverLt());
-    g.drawLine(b.getX(), b.getY(), b.getRight(), b.getY(), 1);
-    g.setColour(juce::Colour(0xFFA0A0A8));
-    g.drawLine(b.getX(), b.getBottom() - 1, b.getRight(), b.getBottom() - 1, 1);
-}
-
-void TB303LookAndFeel::paintDarkBg(juce::Graphics& g, juce::Rectangle<float> b)
-{
-    g.setColour(panelDk());
-    g.fillRect(b);
-    auto inner = b.reduced(5);
-    g.setColour(panelMd());
-    g.fillRoundedRectangle(inner, 5);
-    g.setColour(juce::Colour(0xFF1E1E24));
-    g.drawRoundedRectangle(inner, 5, 1);
-}
-
-void TB303LookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button&,
-                                              const juce::Colour&, bool, bool down)
-{
-    auto b = g.getClipBounds().toFloat().reduced(0.5f);
-    paint3DButton(g, b, down);
-}
-
-void TB303LookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
-                                         bool hi, bool)
-{
-    auto b = button.getLocalBounds().toFloat().reduced(1);
-    auto on = button.getToggleState();
-    g.setColour(on ? silverDk() : silver());
-    if (hi) g.setColour(on ? silverDk().brighter(0.05f) : silver().brighter(0.05f));
-    g.fillRoundedRectangle(b, 2);
-    g.setColour(juce::Colour(0xFF707078));
-    g.drawRoundedRectangle(b, 2, 1);
-    g.setColour(textDk());
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawFittedText(button.getButtonText(), button.getLocalBounds().reduced(2),
-                     juce::Justification::centred, 2);
 }
 
 void TB303LookAndFeel::drawComboBox(juce::Graphics& g, int w, int h,
                                      bool, int, int, int, int, juce::ComboBox&)
 {
     auto b = juce::Rectangle<float>(0, 0, (float)w, (float)h);
-    g.setColour(dispBg());
-    g.fillRoundedRectangle(b, 3);
-    g.setColour(juce::Colour(0xFF707078));
-    g.drawRoundedRectangle(b.reduced(0.5f), 3, 1);
-    float ax = (float)w - 14, my = (float)h * 0.5f;
-    juce::Path up, dn;
-    up.addTriangle(ax, my - 2, ax + 7, my - 2, ax + 3.5f, my - 6);
-    dn.addTriangle(ax, my + 2, ax + 7, my + 2, ax + 3.5f, my + 6);
-    g.setColour(juce::Colour(0xFF404048));
-    g.fillPath(up); g.fillPath(dn);
+    g.setColour(juce::Colour(0xFF1A1A28));
+    g.fillRoundedRectangle(b, 4.0f);
+    g.setColour(TB303Colors::panelBorder());
+    g.drawRoundedRectangle(b.reduced(0.5f), 4.0f, 1.0f);
+
+    float ax = (float)w - 16, my = (float)h * 0.5f;
+    juce::Path arrow;
+    arrow.addTriangle(ax, my - 3, ax + 8, my - 3, ax + 4, my + 3);
+    g.setColour(TB303Colors::textDim());
+    g.fillPath(arrow);
+}
+
+void TB303LookAndFeel::drawPopupMenuBackground(juce::Graphics& g, int width, int height)
+{
+    g.fillAll(juce::Colour(0xFF1A1A28));
+    g.setColour(TB303Colors::panelBorder());
+    g.drawRect(0, 0, width, height, 1);
+}
+
+void TB303LookAndFeel::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area,
+                                          bool isSeparator, bool isActive, bool isHighlighted,
+                                          bool isTicked, bool /*hasSubMenu*/,
+                                          const juce::String& text, const juce::String& /*shortcutText*/,
+                                          const juce::Drawable* /*icon*/, const juce::Colour* /*textColour*/)
+{
+    if (isSeparator)
+    {
+        g.setColour(TB303Colors::panelBorder());
+        g.fillRect(area.reduced(5, 0).withHeight(1).withCentre(area.getCentre()));
+        return;
+    }
+
+    if (isHighlighted && isActive)
+    {
+        g.setColour(TB303Colors::cyan().withAlpha(0.2f));
+        g.fillRect(area);
+    }
+
+    g.setColour(isActive ? TB303Colors::textBright() : TB303Colors::textDim());
+    g.setFont(juce::Font(13.0f));
+    auto textArea = area.reduced(10, 0);
+    g.drawFittedText(text, textArea, juce::Justification::centredLeft, 1);
+
+    if (isTicked)
+    {
+        g.setColour(TB303Colors::cyan());
+        g.fillEllipse(static_cast<float>(area.getRight() - 16), static_cast<float>(area.getCentreY() - 3), 6.0f, 6.0f);
+    }
+}
+
+void TB303LookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
+                                              const juce::Colour&, bool isHighlighted, bool isDown)
+{
+    auto b = button.getLocalBounds().toFloat().reduced(1.0f);
+    auto baseColor = juce::Colour(0xFF1E1E2E);
+
+    if (isDown)
+        baseColor = baseColor.brighter(0.15f);
+    else if (isHighlighted)
+        baseColor = baseColor.brighter(0.08f);
+
+    if (button.getToggleState())
+        baseColor = baseColor.brighter(0.1f);
+
+    g.setColour(baseColor);
+    g.fillRoundedRectangle(b, 4.0f);
+    g.setColour(TB303Colors::panelBorder());
+    g.drawRoundedRectangle(b, 4.0f, 1.0f);
+}
+
+void TB303LookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
+                                         bool isHighlighted, bool /*isDown*/)
+{
+    auto b = button.getLocalBounds().toFloat().reduced(1.0f);
+    auto on = button.getToggleState();
+
+    auto baseColor = on ? juce::Colour(0xFF2A2A3E) : juce::Colour(0xFF1E1E2E);
+    if (isHighlighted) baseColor = baseColor.brighter(0.06f);
+
+    g.setColour(baseColor);
+    g.fillRoundedRectangle(b, 4.0f);
+    g.setColour(on ? TB303Colors::cyan() : TB303Colors::panelBorder());
+    g.drawRoundedRectangle(b, 4.0f, 1.0f);
+
+    g.setColour(on ? TB303Colors::textBright() : TB303Colors::textDim());
+    g.setFont(juce::Font(11.0f));
+    g.drawFittedText(button.getButtonText(), button.getLocalBounds().reduced(4),
+                     juce::Justification::centred, 2);
+}
+
+void TB303LookAndFeel::paintSectionPanel(juce::Graphics& g, juce::Rectangle<int> bounds,
+                                          const juce::String& title, juce::Colour accentColor)
+{
+    auto bf = bounds.toFloat();
+
+    g.setColour(TB303Colors::panelBg());
+    g.fillRoundedRectangle(bf, 4.0f);
+
+    g.setColour(TB303Colors::panelBorder());
+    g.drawRoundedRectangle(bf.reduced(0.5f), 4.0f, 1.0f);
+
+    // Accent glow line at top
+    g.setColour(accentColor);
+    g.fillRect(bf.getX() + 4.0f, bf.getY() + 1.0f, bf.getWidth() - 8.0f, 2.0f);
+
+    // Glow effect
+    g.setColour(accentColor.withAlpha(0.15f));
+    g.fillRect(bf.getX() + 2.0f, bf.getY(), bf.getWidth() - 4.0f, 8.0f);
+
+    if (title.isNotEmpty())
+    {
+        g.setColour(accentColor);
+        g.setFont(juce::Font(11.0f, juce::Font::bold));
+        g.drawText(title, bounds.getX() + 8, bounds.getY() + 5, bounds.getWidth() - 16, 14,
+                   juce::Justification::centredLeft);
+    }
+}
+
+void TB303LookAndFeel::paintLED(juce::Graphics& g, float x, float y, float sz, bool on)
+{
+    if (on)
+    {
+        g.setColour(TB303Colors::ledOn().withAlpha(0.3f));
+        g.fillEllipse(x - 3, y - 3, sz + 6, sz + 6);
+    }
+    g.setColour(on ? TB303Colors::ledOn() : TB303Colors::ledOff());
+    g.fillEllipse(x, y, sz, sz);
+
+    if (on)
+    {
+        g.setColour(juce::Colours::white.withAlpha(0.3f));
+        g.fillEllipse(x + sz * 0.2f, y + sz * 0.15f, sz * 0.35f, sz * 0.3f);
+    }
 }

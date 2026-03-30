@@ -12,7 +12,7 @@ KnobComponent::KnobComponent(const juce::String& labelText, const juce::String& 
     label_.setText(labelText, juce::dontSendNotification);
     label_.setJustificationType(juce::Justification::centred);
     label_.setFont(juce::Font(9.0f, juce::Font::bold));
-    label_.setColour(juce::Label::textColourId, TB303LookAndFeel::textDk());
+    label_.setColour(juce::Label::textColourId, TB303Colors::textDim());
     addAndMakeVisible(label_);
 
     attachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
@@ -20,6 +20,11 @@ KnobComponent::KnobComponent(const juce::String& labelText, const juce::String& 
 }
 
 KnobComponent::~KnobComponent() {}
+
+void KnobComponent::setArcColor(juce::Colour c)
+{
+    slider_.getProperties().set("arcColor", (juce::int64)c.getARGB());
+}
 
 void KnobComponent::resized()
 {

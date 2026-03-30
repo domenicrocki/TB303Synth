@@ -19,28 +19,32 @@ public:
 private:
     TB303AudioProcessor& processor_;
 
-    // Left column
-    juce::ToggleButton posLockButton_{ "POSITION LOCK\nTO DAW" };
+    // Row 3 - Transport
     LEDButton runStopButton_{ "RUN / STOP" };
+    LEDButton recordButton_{ "RECORD" };
 
-    // Keyboard section
-    juce::ToggleButton keyboardToggle_{ "KEYBOARD" };
-    LEDButton editButton_{ "EDIT" };
+    // Keyboard
     PianoKeyboard keyboard_;
 
-    // Right side buttons (top row)
-    LEDButton accentButton_{ "ACCENT" };
-    LEDButton slideButton_{ "SLIDE" };
+    // Octave
     LEDButton downButton_{ "DOWN" };
     LEDButton upButton_{ "UP" };
 
-    // Far right
-    juce::TextButton randomizeButton_{ "RANDOMIZE" };
-    juce::TextButton generateButton_{ "GENERATE /\nUNDO" };
+    // Articulation
+    LEDButton accentButton_{ "ACCENT" };
+    LEDButton slideButton_{ "SLIDE" };
 
-    // Bottom row
+    // Pattern actions
+    juce::TextButton randomizeButton_{ "RANDOMIZE" };
+    juce::TextButton generateUndoButton_{ "GENERATE /\nUNDO" };
+    juce::TextButton patternClearButton_{ "PATTERN\nCLEAR" };
+
+    // Row 4
+    juce::TextButton patternSelectButton_{ "PATTERN\nSELECT" };
+    juce::TextButton modifyUndoButton_{ "MODIFY /\nUNDO" };
+
+    // Step buttons - ALL 16
     juce::OwnedArray<StepButton> stepButtons_;
-    juce::TextButton modifyButton_{ "MODIFY /\nUNDO" };
 
     bool editMode_ = false;
     int editStep_ = 0;
