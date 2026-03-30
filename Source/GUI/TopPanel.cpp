@@ -100,63 +100,10 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     // Shuffle
     addAndMakeVisible(shuffleKnob_);
 
-    // Sequencer section
-    scaleBox_.addItemList(juce::StringArray{ "1/16", "1/16T", "1/32" }, 1);
-    addAndMakeVisible(scaleBox_);
-    scaleAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        apvts_, "scale", scaleBox_);
-
-    playModeBox_.addItemList(juce::StringArray{ "FWD", "REV", "FWD&REV", "INVERT", "RANDOM" }, 1);
-    addAndMakeVisible(playModeBox_);
-    playModeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-        apvts_, "playMode", playModeBox_);
-
-    // Pattern list
-    for (int i = 0; i < 8; ++i)
-        patternList_.addItem("Pattern " + juce::String(i + 1), i + 1);
-    patternList_.setSelectedId(1);
-    addAndMakeVisible(patternList_);
-    patternList_.onChange = [this]() {
-        processor_.getSequencer().setCurrentPattern(patternList_.getSelectedId() - 1);
-    };
-
-    // Patch list
-    updatePatchList();
-    addAndMakeVisible(patchList_);
-    patchList_.onChange = [this]() {
-        int sel = patchList_.getSelectedId() - 1;
-        if (sel >= 0) processor_.loadPatch(sel);
-    };
-
-    // Bank buttons
-    for (int i = 0; i < 8; ++i) {
-        auto* btn = new juce::TextButton(juce::String(i + 1));
-        btn->onClick = [this, i]() {
-            processor_.getSequencer().setCurrentBank(i);
-            for (int j = 0; j < 8; ++j)
-                bankButtons_[j]->setToggleState(j == i, juce::dontSendNotification);
-        };
-        btn->setClickingTogglesState(false);
-        bankButtons_.add(btn);
-        addAndMakeVisible(btn);
-    }
-    if (bankButtons_.size() > 0)
-        bankButtons_[0]->setToggleState(true, juce::dontSendNotification);
-
     startTimerHz(15);
 }
 
 TopPanel::~TopPanel() { stopTimer(); }
-
-void TopPanel::updatePatchList()
-{
-    patchList_.clear();
-    auto names = processor_.getPresetManager().getPatchNames();
-    for (int i = 0; i < names.size(); ++i)
-        patchList_.addItem(names[i], i + 1);
-    if (names.size() > 0)
-        patchList_.setSelectedId(1, juce::dontSendNotification);
-}
 
 void TopPanel::timerCallback()
 {
@@ -191,7 +138,7 @@ void TopPanel::paint(juce::Graphics& g)
     TB303LookAndFeel::paintSectionPanel(g, { 225, 160, 295, 145 }, "Overdrive", TB303Colors::orange());
     TB303LookAndFeel::paintSectionPanel(g, { 525, 160, 305, 145 }, "Delay", TB303Colors::orange());
     TB303LookAndFeel::paintSectionPanel(g, { 835, 160, 185, 145 }, "Shuffle", TB303Colors::green());
-    TB303LookAndFeel::paintSectionPanel(g, { 1025, 160, 470, 145 }, "Sequencer", TB303Colors::pink());
+    // (Sequencer section moved to BottomPanel)
 
     // BPM display in Clock section
     float bpm = *apvts_.getRawParameterValue("tempo");
@@ -242,19 +189,5 @@ void TopPanel::resized()
     // Shuffle [835, 160, 185, 145] - centered
     shuffleKnob_.setBounds(870, 180, 120, 110);
 
-    // Sequencer [1025, 160, 470, 145]
-    scaleBox_.setBounds(1040, 180, 90, 22);
-    playModeBox_.setBounds(1140, 180, 100, 22);
-
-    patternList_.setBounds(1040, 210, 150, 22);
-    patchList_.setBounds(1040, 238, 150, 22);
-
-    // Bank buttons in sequencer section
-    int bankX = 1200;
-    int bankW = 32;
-    int bankH = 22;
-    for (int i = 0; i < 4; ++i)
-        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), 210, bankW, bankH);
-    for (int i = 4; i < 8; ++i)
-        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), 238, bankW, bankH);
+    // (Sequencer controls in BottomPanel)
 }

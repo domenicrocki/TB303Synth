@@ -15,6 +15,7 @@ public:
     void resized() override;
     void timerCallback() override;
     void updateStepDisplay();
+    void updatePatchList();
 
 private:
     TB303AudioProcessor& processor_;
@@ -38,6 +39,15 @@ private:
     juce::TextButton generateUndoButton_{ "GENERATE /\nUNDO" };
     juce::TextButton modifyUndoButton_{ "MODIFY /\nUNDO" };
     juce::TextButton patternClearButton_{ "PATTERN\nCLEAR" };
+
+    // Sequencer controls (moved from TopPanel)
+    juce::ComboBox scaleBox_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment_;
+    juce::ComboBox playModeBox_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> playModeAttachment_;
+    juce::ComboBox patternList_;
+    juce::ComboBox patchList_;
+    juce::OwnedArray<juce::TextButton> bankButtons_;
 
     // Step buttons - ALL 16
     juce::OwnedArray<StepButton> stepButtons_;

@@ -12,7 +12,6 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
-    void updatePatchList();
 
 private:
     TB303AudioProcessor& processor_;
@@ -60,12 +59,5 @@ private:
     // Shuffle
     KnobComponent shuffleKnob_;
 
-    // Sequencer section
-    juce::ComboBox scaleBox_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> scaleAttachment_;
-    juce::ComboBox playModeBox_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> playModeAttachment_;
-    juce::ComboBox patternList_;
-    juce::ComboBox patchList_;
-    juce::OwnedArray<juce::TextButton> bankButtons_;
+    // (Sequencer controls moved to BottomPanel)
 };

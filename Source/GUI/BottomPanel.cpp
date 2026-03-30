@@ -119,6 +119,46 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     };
     addAndMakeVisible(patternClearButton_);
 
+    // Sequencer controls (moved from TopPanel)
+    scaleBox_.addItemList(juce::StringArray{ "1/16", "1/16T", "1/32" }, 1);
+    addAndMakeVisible(scaleBox_);
+    scaleAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        processor.getAPVTS(), "scale", scaleBox_);
+
+    playModeBox_.addItemList(juce::StringArray{ "FWD", "REV", "FWD&REV", "INVERT", "RANDOM" }, 1);
+    addAndMakeVisible(playModeBox_);
+    playModeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        processor.getAPVTS(), "playMode", playModeBox_);
+
+    for (int i = 0; i < 8; ++i)
+        patternList_.addItem("Pattern " + juce::String(i + 1), i + 1);
+    patternList_.setSelectedId(1);
+    addAndMakeVisible(patternList_);
+    patternList_.onChange = [this]() {
+        processor_.getSequencer().setCurrentPattern(patternList_.getSelectedId() - 1);
+    };
+
+    updatePatchList();
+    addAndMakeVisible(patchList_);
+    patchList_.onChange = [this]() {
+        int sel = patchList_.getSelectedId() - 1;
+        if (sel >= 0) processor_.loadPatch(sel);
+    };
+
+    for (int i = 0; i < 8; ++i) {
+        auto* btn = new juce::TextButton(juce::String(i + 1));
+        btn->onClick = [this, i]() {
+            processor_.getSequencer().setCurrentBank(i);
+            for (int j = 0; j < 8; ++j)
+                bankButtons_[j]->setToggleState(j == i, juce::dontSendNotification);
+        };
+        btn->setClickingTogglesState(false);
+        bankButtons_.add(btn);
+        addAndMakeVisible(btn);
+    }
+    if (bankButtons_.size() > 0)
+        bankButtons_[0]->setToggleState(true, juce::dontSendNotification);
+
     // ALL 16 step buttons
     for (int i = 0; i < 16; ++i) {
         auto* btn = new StepButton(i);
@@ -141,8 +181,9 @@ void BottomPanel::paint(juce::Graphics& g)
     auto bounds = getLocalBounds();
     (void)bounds;
 
-    // Row 3 panels (no Transport here - moved to Row 4)
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 760, 220 }, "Keyboard", TB303Colors::pink());
+    // Row 3 panels
+    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 215, 220 }, "Sequencer", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 230, 5, 540, 220 }, "Keyboard", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 775, 5, 145, 220 }, "Octave", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 925, 5, 175, 220 }, "Articulation", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Randomize", TB303Colors::pink());
@@ -151,8 +192,8 @@ void BottomPanel::paint(juce::Graphics& g)
     g.setColour(TB303Colors::textDim());
     g.setFont(juce::Font(9.0f, juce::Font::bold));
     const char* noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C" };
-    int kbX = 140;
-    int kbW = 610;
+    int kbX = 245;
+    int kbW = 510;
     float whiteKeyW = static_cast<float>(kbW) / 8.0f;
     int whiteIdx = 0;
     for (int i = 0; i < 13; ++i) {
@@ -184,8 +225,19 @@ void BottomPanel::paint(juce::Graphics& g)
 
 void BottomPanel::resized()
 {
-    // Keyboard [10, 5, 760, 220] - wider now since Transport moved to Row 4
-    keyboard_.setBounds(25, 40, 730, 170);
+    // Sequencer [10, 5, 215, 220]
+    scaleBox_.setBounds(20, 28, 90, 22);
+    playModeBox_.setBounds(115, 28, 100, 22);
+    patternList_.setBounds(20, 58, 120, 22);
+    patchList_.setBounds(20, 86, 120, 22);
+    int bankX = 145;
+    for (int i = 0; i < 4; ++i)
+        bankButtons_[i]->setBounds(bankX + i * 30, 58, 26, 20);
+    for (int i = 4; i < 8; ++i)
+        bankButtons_[i]->setBounds(bankX + (i - 4) * 30, 84, 26, 20);
+
+    // Keyboard [230, 5, 540, 220]
+    keyboard_.setBounds(245, 40, 510, 170);
 
     // Transport moved to Row 4 [10, 230, 110, 235]
     runStopButton_.setBounds(20, 260, 90, 90);
@@ -227,6 +279,16 @@ void BottomPanel::timerCallback()
             stepButtons_[i]->setCurrent(false);
     }
     runStopButton_.setLEDOn(processor_.getSequencer().isPlaying());
+}
+
+void BottomPanel::updatePatchList()
+{
+    patchList_.clear();
+    auto names = processor_.getPresetManager().getPatchNames();
+    for (int i = 0; i < names.size(); ++i)
+        patchList_.addItem(names[i], i + 1);
+    if (names.size() > 0)
+        patchList_.setSelectedId(1, juce::dontSendNotification);
 }
 
 void BottomPanel::updateStepDisplay()
