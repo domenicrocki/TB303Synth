@@ -141,9 +141,8 @@ void BottomPanel::paint(juce::Graphics& g)
     auto bounds = getLocalBounds();
     (void)bounds;
 
-    // Row 3 panels
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 110, 220 }, "Transport", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 125, 5, 645, 220 }, "Keyboard", TB303Colors::pink());
+    // Row 3 panels (no Transport here - moved to Row 4)
+    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 760, 220 }, "Keyboard", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 775, 5, 145, 220 }, "Octave", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 925, 5, 175, 220 }, "Articulation", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Randomize", TB303Colors::pink());
@@ -166,7 +165,7 @@ void BottomPanel::paint(juce::Graphics& g)
     }
 
     // Row 4 panels
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 230, 110, 235 }, "", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 10, 230, 110, 235 }, "Transport", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 125, 230, 1370, 235 }, "Step Sequencer", TB303Colors::pink());
 
     // PATTERN label and step numbers
@@ -185,12 +184,12 @@ void BottomPanel::paint(juce::Graphics& g)
 
 void BottomPanel::resized()
 {
-    // Row 3 - Transport [10, 5, 110, 220]
-    runStopButton_.setBounds(25, 30, 80, 80);
-    recordButton_.setBounds(25, 120, 80, 80);
+    // Keyboard [10, 5, 760, 220] - wider now since Transport moved to Row 4
+    keyboard_.setBounds(25, 40, 730, 170);
 
-    // Keyboard [125, 5, 645, 220]
-    keyboard_.setBounds(140, 40, 610, 170);
+    // Transport moved to Row 4 [10, 230, 110, 235]
+    runStopButton_.setBounds(20, 260, 90, 90);
+    recordButton_.setBounds(20, 360, 90, 90);
 
     // Octave [775, 5, 145, 220]
     upButton_.setBounds(790, 40, 115, 85);
