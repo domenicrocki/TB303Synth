@@ -49,7 +49,7 @@ private:
     int currentStep_ = 0;
     int currentBank_ = 0;
     int currentPattern_ = 0;
-    bool playing_ = false;
+    std::atomic<bool> playing_ { false };
     bool forward_ = true; // for FWD&REV mode
 
     PlayMode playMode_ = PlayMode::Forward;

@@ -10,6 +10,7 @@ void DelayEffect::prepare(double sampleRate, int /*maxBlockSize*/)
     bufferR_.resize(static_cast<size_t>(bufferSize_), 0.0f);
     writePos_ = 0;
     tapeLPState_ = 0.0f;
+    tapeLPStateR_ = 0.0f;
 }
 
 void DelayEffect::setDelayType(DelayType type) { delayType_ = type; }
@@ -66,7 +67,8 @@ void DelayEffect::process(float* leftChannel, float* rightChannel, int numSample
             float coeff = 0.3f;
             tapeLPState_ += coeff * (delayedL - tapeLPState_);
             delayedL = tapeLPState_;
-            delayedR = tapeLPState_; // mono tape
+            tapeLPStateR_ += coeff * (delayedR - tapeLPStateR_);
+            delayedR = tapeLPStateR_;
         }
 
         float inputL = leftChannel[i];
@@ -99,4 +101,5 @@ void DelayEffect::reset()
     std::fill(bufferR_.begin(), bufferR_.end(), 0.0f);
     writePos_ = 0;
     tapeLPState_ = 0.0f;
+    tapeLPStateR_ = 0.0f;
 }

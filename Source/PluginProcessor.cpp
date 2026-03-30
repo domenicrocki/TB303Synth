@@ -259,6 +259,16 @@ void TB303AudioProcessor::loadPatch(int index)
     apvts_.getParameter("tempoSync")->setValueNotifyingHost(patch.tempoSync ? 1.0f : 0.0f);
 }
 
+void TB303AudioProcessor::triggerNote(int midiNote, bool accent, bool slide)
+{
+    voice_.noteOn(midiNote, accent, slide);
+}
+
+void TB303AudioProcessor::releaseNote()
+{
+    voice_.noteOff();
+}
+
 void TB303AudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     juce::ValueTree state("TB303State");

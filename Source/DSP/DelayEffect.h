@@ -34,6 +34,7 @@ private:
 
     // Tape-style lowpass for feedback
     float tapeLPState_ = 0.0f;
+    float tapeLPStateR_ = 0.0f;
 
     int getDelaySamples() const;
 };

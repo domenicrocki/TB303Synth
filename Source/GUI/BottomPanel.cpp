@@ -35,6 +35,15 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
                 editStep_ = (editStep_ + 1) % 16;
                 updateStepDisplay();
             }
+        } else {
+            // Live play
+            processor_.triggerNote(midiNote, accentButton_.isLEDOn(), slideButton_.isLEDOn());
+        }
+    };
+
+    keyboard_.onNoteOff = [this](int) {
+        if (!editMode_) {
+            processor_.releaseNote();
         }
     };
 

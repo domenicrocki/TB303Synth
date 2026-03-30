@@ -43,11 +43,11 @@ void StepSequencer::processBlock(int numSamples, TB303Voice& voice)
         double currentStepLength = samplesPerStep_;
         if (currentStep_ % 2 == 1 && shuffle_ > 0.0f)
         {
-            currentStepLength = samplesPerStep_ * (1.0 + static_cast<double>(shuffle_) * 0.5);
+            currentStepLength = samplesPerStep_ * (1.0 + static_cast<double>(shuffle_) * 0.75);
         }
         else if (currentStep_ % 2 == 0 && shuffle_ > 0.0f)
         {
-            currentStepLength = samplesPerStep_ * (1.0 - static_cast<double>(shuffle_) * 0.5);
+            currentStepLength = samplesPerStep_ * (1.0 - static_cast<double>(shuffle_) * 0.75);
         }
 
         if (sampleCounter_ >= currentStepLength)

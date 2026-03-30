@@ -42,6 +42,9 @@ public:
 
     void loadPatch(int index);
 
+    void triggerNote(int midiNote, bool accent, bool slide);
+    void releaseNote();
+
 private:
     juce::AudioProcessorValueTreeState apvts_;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

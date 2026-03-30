@@ -26,6 +26,10 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     decayKnob_.setArcColor(TB303Colors::purple());
     accentKnob_.setArcColor(TB303Colors::purple());
     tempoKnob_.setArcColor(TB303Colors::cyan());
+    tempoKnob_.getSlider().setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 16);
+    tempoKnob_.getSlider().setColour(juce::Slider::textBoxTextColourId, TB303Colors::cyan());
+    tempoKnob_.getSlider().setColour(juce::Slider::textBoxBackgroundColourId, juce::Colour(0xFF14141C));
+    tempoKnob_.getSlider().setColour(juce::Slider::textBoxOutlineColourId, TB303Colors::panelBorder());
     driveDepthKnob_.setArcColor(TB303Colors::orange());
     driveToneKnob_.setArcColor(TB303Colors::orange());
     driveLevelKnob_.setArcColor(TB303Colors::orange());
