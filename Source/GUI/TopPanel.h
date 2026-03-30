@@ -12,9 +12,11 @@ public:
     void resized() override;
 
 private:
+    juce::AudioProcessorValueTreeState& apvts_;
+
     // Waveform toggle
     juce::TextButton waveformButton_;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> waveformAttachment_;
+    int currentWaveform_ = 0;
 
     // Main synth knobs
     KnobComponent tuningKnob_;
@@ -23,6 +25,8 @@ private:
     KnobComponent envModKnob_;
     KnobComponent decayKnob_;
     KnobComponent accentKnob_;
+
+    // Master section
     KnobComponent masterTuneKnob_;
 
     // Drive section
@@ -41,10 +45,7 @@ private:
     juce::ToggleButton tempoSyncButton_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tempoSyncAttachment_;
 
-    // Volume
-    KnobComponent volumeKnob_;
-
-    juce::AudioProcessorValueTreeState& apvts_;
-
-    int currentWaveform_ = 0;
+    // Volume (large knob - custom painted)
+    juce::Slider volumeSlider_;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> volumeAttachment_;
 };

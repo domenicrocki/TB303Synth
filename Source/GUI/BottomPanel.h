@@ -14,28 +14,33 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
-
     void updateStepDisplay();
 
 private:
     TB303AudioProcessor& processor_;
 
+    // Left column
     juce::ToggleButton posLockButton_{ "POSITION LOCK\nTO DAW" };
-    juce::ToggleButton keyboardToggle_{ "KEYBOARD" };
+    LEDButton runStopButton_{ "RUN / STOP" };
 
+    // Keyboard section
+    juce::ToggleButton keyboardToggle_{ "KEYBOARD" };
+    LEDButton editButton_{ "EDIT" };
     PianoKeyboard keyboard_;
 
-    LEDButton runStopButton_{ "RUN / STOP" };
-    LEDButton editButton_{ "EDIT" };
+    // Right side buttons (top row)
     LEDButton accentButton_{ "ACCENT" };
     LEDButton slideButton_{ "SLIDE" };
     LEDButton downButton_{ "DOWN" };
     LEDButton upButton_{ "UP" };
 
-    juce::OwnedArray<StepButton> stepButtons_;
-
+    // Far right
     juce::TextButton randomizeButton_{ "RANDOMIZE" };
-    juce::TextButton modifyButton_{ "MODIFY/\nUNDO" };
+    juce::TextButton generateButton_{ "GENERATE /\nUNDO" };
+
+    // Bottom row
+    juce::OwnedArray<StepButton> stepButtons_;
+    juce::TextButton modifyButton_{ "MODIFY /\nUNDO" };
 
     bool editMode_ = false;
     int editStep_ = 0;

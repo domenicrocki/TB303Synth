@@ -2,23 +2,21 @@
 #include "TB303LookAndFeel.h"
 
 TopPanel::TopPanel(juce::AudioProcessorValueTreeState& apvts)
-    : tuningKnob_("TUNING", "tuning", apvts),
+    : apvts_(apvts),
+      tuningKnob_("TUNING", "tuning", apvts),
       cutoffKnob_("CUT OFF FREQ", "cutoff", apvts),
       resonanceKnob_("RESONANCE", "resonance", apvts),
       envModKnob_("ENV MOD", "envMod", apvts),
       decayKnob_("DECAY", "decay", apvts),
       accentKnob_("ACCENT", "accent", apvts),
-      masterTuneKnob_("MASTER TUNE", "masterTune", apvts),
+      masterTuneKnob_("MASTER\nTUNE", "masterTune", apvts),
       driveToneKnob_("TONE", "driveTone", apvts),
       driveDepthKnob_("DEPTH", "driveDepth", apvts),
       delayTimeKnob_("TIME", "delayTime", apvts),
-      delayLevelKnob_("LEVEL", "delayLevel", apvts),
-      volumeKnob_("VOLUME", "volume", apvts),
-      apvts_(apvts)
+      delayLevelKnob_("LEVEL", "delayLevel", apvts)
 {
     // Waveform button
     waveformButton_.setButtonText("SAW");
-    waveformButton_.setClickingTogglesState(false);
     waveformButton_.onClick = [this]()
     {
         currentWaveform_ = 1 - currentWaveform_;
@@ -44,7 +42,7 @@ TopPanel::TopPanel(juce::AudioProcessorValueTreeState& apvts)
     addAndMakeVisible(driveDepthKnob_);
 
     // Delay
-    delayTypeBox_.addItemList(juce::StringArray{ "Digital", "Tape", "Ping Pong" }, 1);
+    delayTypeBox_.addItemList(juce::StringArray{ "Digital", "Tape", "PingPong" }, 1);
     addAndMakeVisible(delayTypeBox_);
     delayTypeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
         apvts, "delayType", delayTypeBox_);
@@ -52,12 +50,18 @@ TopPanel::TopPanel(juce::AudioProcessorValueTreeState& apvts)
     addAndMakeVisible(delayLevelKnob_);
 
     // Tempo sync
-    tempoSyncButton_.setButtonText("TEMPO SYNC");
+    tempoSyncButton_.setButtonText("ON");
     addAndMakeVisible(tempoSyncButton_);
     tempoSyncAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts, "tempoSync", tempoSyncButton_);
 
-    addAndMakeVisible(volumeKnob_);
+    // Volume - large custom knob
+    volumeSlider_.setSliderStyle(juce::Slider::RotaryVerticalDrag);
+    volumeSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    volumeSlider_.setPopupDisplayEnabled(true, true, this);
+    addAndMakeVisible(volumeSlider_);
+    volumeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        apvts, "volume", volumeSlider_);
 }
 
 TopPanel::~TopPanel() {}
@@ -65,78 +69,107 @@ TopPanel::~TopPanel() {}
 void TopPanel::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
+    TB303LookAndFeel::drawSilverPanel(g, bounds);
 
-    // Silver metallic background
-    juce::ColourGradient gradient(juce::Colour(0xFFD8D8DC), 0.0f, 0.0f,
-                                   juce::Colour(0xFFC0C0C4), 0.0f, bounds.getHeight(), false);
-    g.setGradientFill(gradient);
-    g.fillRect(bounds);
+    g.setColour(TB303LookAndFeel::getTextDark());
 
-    // Top border line
-    g.setColour(juce::Colour(0xFFE8E8EC));
-    g.drawLine(0.0f, 0.0f, bounds.getWidth(), 0.0f, 1.0f);
+    // WAVEFORM label
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
+    g.drawText("WAVEFORM", 8, 4, 80, 10, juce::Justification::centredLeft);
 
-    // Roland logo area
-    g.setColour(TB303LookAndFeel::getTextColor());
+    // Waveform icons (saw, triangle, square)
+    g.setFont(juce::Font(10.0f));
+    g.drawText("M", 12, 14, 12, 12, juce::Justification::centred);  // saw-like
+    g.drawText("A", 28, 14, 12, 12, juce::Justification::centred);  // triangle-like
+    g.drawText("n", 44, 14, 14, 12, juce::Justification::centred);  // square-like
+
+    // Roland "R" logo symbol
+    g.setFont(juce::Font(16.0f, juce::Font::bold));
+    juce::Path rLogo;
+    auto rBounds = juce::Rectangle<float>(14.0f, 52.0f, 22.0f, 22.0f);
+    g.setColour(TB303LookAndFeel::getTextDark());
+    g.drawRoundedRectangle(rBounds, 3.0f, 1.5f);
+    g.setFont(juce::Font(14.0f, juce::Font::bold));
+    g.drawText("R", rBounds.translated(1.0f, 0.0f), juce::Justification::centred);
+
+    // Roland text
     g.setFont(juce::Font(22.0f, juce::Font::bold));
-    g.drawText("Roland", 10, 35, 120, 30, juce::Justification::centredLeft);
+    g.drawText("Roland", 38, 50, 90, 26, juce::Justification::centredLeft);
 
-    // Waveform label
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawText("WAVEFORM", 15, 5, 80, 12, juce::Justification::centredLeft);
+    // Separator lines between sections
+    g.setColour(juce::Colour(0xFFA0A0A8));
+    float rightSectionStart = bounds.getWidth() - 380.0f;
+    g.drawLine(rightSectionStart, 8.0f, rightSectionStart, bounds.getHeight() - 8.0f, 1.0f);
+
+    float delayStart = bounds.getWidth() - 245.0f;
+    g.drawLine(delayStart, 8.0f, delayStart, bounds.getHeight() - 8.0f, 1.0f);
+
+    float volumeStart = bounds.getWidth() - 110.0f;
+    g.drawLine(volumeStart, 8.0f, volumeStart, bounds.getHeight() - 8.0f, 1.0f);
 
     // Section labels
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawText("DRIVE TYPE", static_cast<int>(bounds.getWidth()) - 340, 5, 80, 12, juce::Justification::centred);
-    g.drawText("DELAY TYPE", static_cast<int>(bounds.getWidth()) - 220, 5, 80, 12, juce::Justification::centred);
+    g.setColour(TB303LookAndFeel::getTextDark());
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
 
-    // Separator lines
-    g.setColour(juce::Colour(0xFFA0A0A8));
-    float sepX1 = bounds.getWidth() - 370.0f;
-    g.drawLine(sepX1, 10.0f, sepX1, bounds.getHeight() - 10.0f, 1.0f);
-    float sepX2 = bounds.getWidth() - 250.0f;
-    g.drawLine(sepX2, 10.0f, sepX2, bounds.getHeight() - 10.0f, 1.0f);
-    float sepX3 = bounds.getWidth() - 100.0f;
-    g.drawLine(sepX3, 10.0f, sepX3, bounds.getHeight() - 10.0f, 1.0f);
+    int driveX = static_cast<int>(rightSectionStart) + 5;
+    g.drawText("DRIVE TYPE", driveX, 4, 80, 10, juce::Justification::centredLeft);
+
+    int dlX = static_cast<int>(delayStart) + 5;
+    g.drawText("DELAY TYPE", dlX, 4, 80, 10, juce::Justification::centredLeft);
+
+    g.drawText("TEMPO SYNC", dlX + 85, 4, 70, 10, juce::Justification::centredLeft);
+
+    // Volume label
+    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.drawText("VOLUME", static_cast<int>(volumeStart) + 5, 4, 80, 12, juce::Justification::centredLeft);
+
+    // PANEL label at top right
+    g.setFont(juce::Font(7.0f, juce::Font::bold));
+    g.drawText("PANEL", static_cast<int>(bounds.getWidth()) - 45, 2, 40, 10, juce::Justification::centred);
 }
 
 void TopPanel::resized()
 {
     auto bounds = getLocalBounds();
-    int knobSize = 70;
-    int smallKnobSize = 55;
-    int y = 15;
+    int w = bounds.getWidth();
+    int knobW = 80;
+    int knobH = 80;
+    int smallKnobW = 60;
+    int smallKnobH = 65;
+    int topY = 22;
 
     // Waveform button
-    waveformButton_.setBounds(30, 15, 55, 22);
+    waveformButton_.setBounds(25, 30, 55, 20);
 
-    // Main synth knobs - starting after Roland logo area
-    int x = 130;
-    tuningKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
-    cutoffKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
-    resonanceKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
-    envModKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
-    decayKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
-    accentKnob_.setBounds(x, y, knobSize, knobSize); x += knobSize + 5;
+    // Main synth knobs - horizontal row starting after Roland logo area
+    int x = 120;
+    int knobGap = 6;
+    tuningKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
+    cutoffKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
+    resonanceKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
+    envModKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
+    decayKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
+    accentKnob_.setBounds(x, topY, knobW, knobH); x += knobW + knobGap;
 
-    // Master tune (smaller)
-    masterTuneKnob_.setBounds(x, y + 5, smallKnobSize, smallKnobSize); x += smallKnobSize + 15;
+    // Master tune (smaller, after accent)
+    masterTuneKnob_.setBounds(x + 10, topY + 10, smallKnobW, smallKnobH);
 
     // Drive section
-    int driveX = bounds.getWidth() - 360;
-    driveTypeBox_.setBounds(driveX, y + 2, 90, 20);
-    driveToneKnob_.setBounds(driveX, y + 22, smallKnobSize, smallKnobSize);
-    driveDepthKnob_.setBounds(driveX + smallKnobSize + 2, y + 22, smallKnobSize, smallKnobSize);
+    int driveX = w - 375;
+    driveTypeBox_.setBounds(driveX, topY + 2, 90, 20);
+    driveToneKnob_.setBounds(driveX, topY + 26, smallKnobW, smallKnobH);
+    driveDepthKnob_.setBounds(driveX + smallKnobW + 4, topY + 26, smallKnobW, smallKnobH);
 
     // Delay section
-    int delayX = bounds.getWidth() - 240;
-    delayTypeBox_.setBounds(delayX, y + 2, 90, 20);
-    delayTimeKnob_.setBounds(delayX, y + 22, smallKnobSize, smallKnobSize);
-    delayLevelKnob_.setBounds(delayX + smallKnobSize + 2, y + 22, smallKnobSize, smallKnobSize);
+    int dlX = w - 240;
+    delayTypeBox_.setBounds(dlX, topY + 2, 80, 20);
+    delayTimeKnob_.setBounds(dlX, topY + 26, smallKnobW, smallKnobH);
+    delayLevelKnob_.setBounds(dlX + smallKnobW + 4, topY + 26, smallKnobW, smallKnobH);
 
     // Tempo sync
-    tempoSyncButton_.setBounds(bounds.getWidth() - 130, y + 30, 80, 25);
+    tempoSyncButton_.setBounds(dlX + 85, topY + 26, 45, 25);
 
-    // Volume (larger knob, far right)
-    volumeKnob_.setBounds(bounds.getWidth() - 90, y - 5, 80, 80);
+    // Volume (large knob, far right)
+    int volX = w - 100;
+    volumeSlider_.setBounds(volX, topY - 5, 90, 90);
 }

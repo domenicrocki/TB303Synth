@@ -11,7 +11,6 @@ public:
 
     void paint(juce::Graphics& g) override;
     void resized() override;
-
     void updatePatchList();
 
 private:
@@ -24,17 +23,19 @@ private:
     KnobComponent shuffleKnob_;
     KnobComponent scaleKnob_;
 
-    // Play mode
+    // Play mode - rotary selector
     juce::ComboBox playModeBox_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> playModeAttachment_;
 
     // Pattern list
+    juce::Label patternLabel_{ {}, "PATTERN" };
     juce::ComboBox patternList_;
     juce::TextButton patternUp_{ ">" };
     juce::TextButton patternDown_{ "<" };
     juce::TextButton patternWrite_{ "WRITE" };
 
     // Patch list
+    juce::Label patchLabel_{ {}, "PATCH" };
     juce::ComboBox patchList_;
     juce::TextButton patchUp_{ ">" };
     juce::TextButton patchDown_{ "<" };
@@ -43,6 +44,6 @@ private:
     // Bank buttons
     juce::OwnedArray<juce::TextButton> bankButtons_;
 
-    // Tempo
+    // Tempo knob
     KnobComponent tempoKnob_;
 };

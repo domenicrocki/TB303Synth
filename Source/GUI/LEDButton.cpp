@@ -7,43 +7,48 @@ void LEDButton::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    // LED indicator
+    // LED indicator (centered at top)
     float ledSize = 6.0f;
     float ledX = bounds.getCentreX() - ledSize * 0.5f;
     float ledY = 2.0f;
 
-    g.setColour(ledOn_ ? TB303LookAndFeel::getLEDRed() : TB303LookAndFeel::getLEDOff());
-    g.fillEllipse(ledX, ledY, ledSize, ledSize);
+    // LED glow
     if (ledOn_)
     {
-        // Glow effect
-        g.setColour(TB303LookAndFeel::getLEDRed().withAlpha(0.3f));
-        g.fillEllipse(ledX - 2.0f, ledY - 2.0f, ledSize + 4.0f, ledSize + 4.0f);
+        g.setColour(TB303LookAndFeel::getLEDRed().withAlpha(0.25f));
+        g.fillEllipse(ledX - 3.0f, ledY - 3.0f, ledSize + 6.0f, ledSize + 6.0f);
     }
+    g.setColour(ledOn_ ? TB303LookAndFeel::getLEDRed() : TB303LookAndFeel::getLEDOff());
+    g.fillEllipse(ledX, ledY, ledSize, ledSize);
 
-    // Button body
-    auto buttonArea = bounds.withTrimmedTop(ledSize + 4.0f).reduced(2.0f);
+    // Button body area
+    auto buttonArea = bounds.withTrimmedTop(ledSize + 5.0f).withTrimmedBottom(14.0f).reduced(3.0f);
+    if (buttonArea.getHeight() < 10.0f) return;
     buttonBounds_ = buttonArea;
 
-    juce::Colour bgCol = juce::Colour(0xFFD0D0D8);
-    g.setColour(bgCol);
-    g.fillRoundedRectangle(buttonArea, 3.0f);
+    // 3D button (like hardware)
+    g.setColour(juce::Colour(0xFFD4D4DC));
+    g.fillRoundedRectangle(buttonArea, 2.0f);
 
-    // 3D border
-    g.setColour(juce::Colour(0xFFE8E8F0));
-    g.drawLine(buttonArea.getX(), buttonArea.getY(), buttonArea.getRight(), buttonArea.getY(), 1.0f);
-    g.drawLine(buttonArea.getX(), buttonArea.getY(), buttonArea.getX(), buttonArea.getBottom(), 1.0f);
-    g.setColour(juce::Colour(0xFF808088));
-    g.drawLine(buttonArea.getX(), buttonArea.getBottom(), buttonArea.getRight(), buttonArea.getBottom(), 1.0f);
-    g.drawLine(buttonArea.getRight(), buttonArea.getY(), buttonArea.getRight(), buttonArea.getBottom(), 1.0f);
+    // Highlight (top-left)
+    g.setColour(juce::Colour(0xFFEAEAF0));
+    g.drawLine(buttonArea.getX() + 1, buttonArea.getY() + 1,
+               buttonArea.getRight() - 1, buttonArea.getY() + 1, 1.0f);
+    g.drawLine(buttonArea.getX() + 1, buttonArea.getY() + 1,
+               buttonArea.getX() + 1, buttonArea.getBottom() - 1, 1.0f);
 
-    // Text
-    g.setColour(TB303LookAndFeel::getTextColor());
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    // Shadow (bottom-right)
+    g.setColour(juce::Colour(0xFF8A8A92));
+    g.drawLine(buttonArea.getX() + 1, buttonArea.getBottom() - 1,
+               buttonArea.getRight() - 1, buttonArea.getBottom() - 1, 1.0f);
+    g.drawLine(buttonArea.getRight() - 1, buttonArea.getY() + 1,
+               buttonArea.getRight() - 1, buttonArea.getBottom() - 1, 1.0f);
 
     // Label below button
     auto textArea = juce::Rectangle<float>(bounds.getX(), buttonArea.getBottom() + 1.0f,
-                                            bounds.getWidth(), bounds.getBottom() - buttonArea.getBottom() - 1.0f);
+                                            bounds.getWidth(), 13.0f);
+    g.setColour(TB303LookAndFeel::getTextLight());
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
     g.drawFittedText(buttonText_, textArea.toNearestInt(), juce::Justification::centredTop, 2);
 }
 
