@@ -199,19 +199,19 @@ void TopPanel::paint(juce::Graphics& g)
     // BPM display in Clock section
     float bpm = *apvts_.getRawParameterValue("tempo");
     g.setColour(TB303Colors::cyan());
-    g.setFont(juce::Font(36.0f, juce::Font::bold));
-    g.drawText(juce::String(bpm, 1), 15, 180, 195, 50, juce::Justification::centred);
+    g.setFont(juce::Font(38.0f, juce::Font::bold));
+    g.drawText(juce::String(bpm, 1), 15, 178, 195, 44, juce::Justification::centred);
     g.setColour(TB303Colors::textDim());
     g.setFont(juce::Font(11.0f));
-    g.drawText("BPM", 15, 228, 195, 16, juce::Justification::centred);
+    g.drawText("BPM", 15, 218, 195, 14, juce::Justification::centred);
 }
 
 void TopPanel::resized()
 {
     // --- Row 1 ---
     // VCO section [5, 5, 215, 150]
-    sawButton_.setBounds(20, 28, 55, 24);
-    sqrButton_.setBounds(80, 28, 55, 24);
+    sawButton_.setBounds(20, 28, 70, 24);
+    sqrButton_.setBounds(20, 56, 70, 24);
     tuningKnob_.setBounds(95, 28, 110, 115);
 
     // VCF section [225, 5, 295, 150]
@@ -227,8 +227,8 @@ void TopPanel::resized()
     volumeSlider_.setBounds(865, 30, 120, 115);
 
     // --- Row 2 ---
-    // Clock [5, 160, 215, 145] - BPM painted, tempo knob
-    tempoKnob_.setBounds(55, 230, 120, 70);
+    // Clock [5, 160, 215, 145] - BPM painted, tempo knob below
+    tempoKnob_.setBounds(40, 232, 140, 68);
 
     // Overdrive [225, 160, 295, 145]
     driveTypeBox_.setBounds(240, 180, 120, 22);
