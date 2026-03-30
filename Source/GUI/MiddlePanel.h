@@ -20,6 +20,9 @@ private:
     juce::TextButton helpButton_{ "HELP" };
     juce::TextButton aboutButton_{ "ABOUT" };
 
+    // Bank buttons
+    juce::OwnedArray<juce::TextButton> bankButtons_;
+
     KnobComponent shuffleKnob_;
     KnobComponent scaleKnob_;
 
@@ -40,9 +43,6 @@ private:
     juce::TextButton patchUp_{ ">" };
     juce::TextButton patchDown_{ "<" };
     juce::TextButton patchWrite_{ "WRITE" };
-
-    // Bank buttons
-    juce::OwnedArray<juce::TextButton> bankButtons_;
 
     // Tempo knob
     KnobComponent tempoKnob_;

@@ -41,7 +41,7 @@ void PianoKeyboard::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    // White keys
+    // White keys first
     for (auto& key : keys_)
     {
         if (key.isBlack) continue;
@@ -54,14 +54,26 @@ void PianoKeyboard::paint(juce::Graphics& g)
         int midiNote = baseOctave_ * 12 + key.noteOffset;
         bool pressed = (midiNote == pressedNote_);
 
-        // Futuristic white keys - dark with cyan border when pressed
-        g.setColour(pressed ? juce::Colour(0xFF2A2A3A) : juce::Colour(0xFFD8D8E0));
+        // Classic white key look
+        if (pressed)
+        {
+            g.setColour(juce::Colour(0xFFCCCCD0));
+        }
+        else
+        {
+            // White key with slight gradient for 3D effect
+            juce::ColourGradient wGrad(juce::Colour(0xFFF8F8FA), keyBounds.getX(), keyBounds.getY(),
+                                        juce::Colour(0xFFE8E8EC), keyBounds.getX(), keyBounds.getBottom(), false);
+            g.setGradientFill(wGrad);
+        }
         g.fillRect(keyBounds.reduced(0.5f));
-        g.setColour(pressed ? TB303LookAndFeel::getNeonCyan().withAlpha(0.5f) : juce::Colour(0xFF404050));
+
+        // White key border
+        g.setColour(juce::Colour(0xFF606068));
         g.drawRect(keyBounds, 1.0f);
     }
 
-    // Black keys
+    // Black keys on top
     for (auto& key : keys_)
     {
         if (!key.isBlack) continue;
@@ -74,31 +86,24 @@ void PianoKeyboard::paint(juce::Graphics& g)
         int midiNote = baseOctave_ * 12 + key.noteOffset;
         bool pressed = (midiNote == pressedNote_);
 
-        g.setColour(pressed ? juce::Colour(0xFF1A1A30) : juce::Colour(0xFF1A1A22));
-        g.fillRect(keyBounds);
-        if (pressed)
+        // Classic black key with gradient
         {
-            g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.3f));
-            g.drawRect(keyBounds, 1.0f);
+            juce::ColourGradient bGrad(pressed ? juce::Colour(0xFF404048) : juce::Colour(0xFF303038),
+                                        keyBounds.getX(), keyBounds.getY(),
+                                        pressed ? juce::Colour(0xFF282830) : juce::Colour(0xFF181820),
+                                        keyBounds.getX(), keyBounds.getBottom(), false);
+            g.setGradientFill(bGrad);
         }
-    }
+        g.fillRect(keyBounds);
 
-    // Note labels
-    g.setFont(juce::Font(8.0f));
-    const char* noteNames[] = { "C", "D", "E", "F", "G", "A", "B", "C" };
-    int idx = 0;
-    for (auto& key : keys_)
-    {
-        if (key.isBlack) continue;
-        auto keyBounds = juce::Rectangle<float>(
-            bounds.getX() + key.bounds.getX() * bounds.getWidth(),
-            bounds.getY() + key.bounds.getY() * bounds.getHeight(),
-            key.bounds.getWidth() * bounds.getWidth(),
-            key.bounds.getHeight() * bounds.getHeight());
-        g.setColour(juce::Colour(0xFF606070));
-        g.drawText(noteNames[idx], keyBounds.withTrimmedTop(keyBounds.getHeight() * 0.78f),
-                   juce::Justification::centred);
-        idx++;
+        // Slight highlight at top of black key
+        g.setColour(juce::Colour(0xFF484850));
+        g.drawLine(keyBounds.getX() + 1, keyBounds.getY() + 1,
+                   keyBounds.getRight() - 1, keyBounds.getY() + 1, 0.7f);
+
+        // Black key border
+        g.setColour(juce::Colour(0xFF101018));
+        g.drawRect(keyBounds, 1.0f);
     }
 }
 
@@ -108,6 +113,7 @@ int PianoKeyboard::getNoteForPosition(juce::Point<float> pos) const
     float normX = (pos.x - bounds.getX()) / bounds.getWidth();
     float normY = (pos.y - bounds.getY()) / bounds.getHeight();
 
+    // Check black keys first (they're on top)
     for (int i = static_cast<int>(keys_.size()) - 1; i >= 0; --i)
     {
         if (!keys_[static_cast<size_t>(i)].isBlack) continue;

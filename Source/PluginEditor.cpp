@@ -23,25 +23,20 @@ TB303AudioProcessorEditor::~TB303AudioProcessorEditor()
 
 void TB303AudioProcessorEditor::paint(juce::Graphics& g)
 {
-    // Dark background
-    g.fillAll(TB303LookAndFeel::getBgDark());
+    g.fillAll(TB303LookAndFeel::silver());
 
+    // Outer border
     auto bounds = getLocalBounds().toFloat();
-
-    // Subtle outer glow border
-    g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.12f));
-    g.drawRoundedRectangle(bounds.reduced(1.0f), 4.0f, 2.0f);
-
-    g.setColour(TB303LookAndFeel::getBorder());
-    g.drawRoundedRectangle(bounds.reduced(2.0f), 3.0f, 1.0f);
+    g.setColour(juce::Colour(0xFF909098));
+    g.drawRect(bounds, 1.0f);
 }
 
 void TB303AudioProcessorEditor::resized()
 {
-    auto bounds = getLocalBounds().reduced(4);
+    auto bounds = getLocalBounds();
 
-    int topHeight = 150;
-    int middleHeight = 110;
+    int topHeight    = 160;
+    int middleHeight = 130;
     int bottomHeight = bounds.getHeight() - topHeight - middleHeight;
 
     topPanel_.setBounds(bounds.removeFromTop(topHeight));

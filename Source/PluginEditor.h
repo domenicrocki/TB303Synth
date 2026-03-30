@@ -23,9 +23,8 @@ private:
     MiddlePanel middlePanel_;
     BottomPanel bottomPanel_;
 
-    // Original TB-303 proportions: wide, ~3:1 aspect ratio
-    static constexpr int EDITOR_WIDTH = 1200;
-    static constexpr int EDITOR_HEIGHT = 560;
+    static constexpr int EDITOR_WIDTH  = 1500;
+    static constexpr int EDITOR_HEIGHT = 680;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TB303AudioProcessorEditor)
 };

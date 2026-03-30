@@ -29,6 +29,10 @@ private:
     // Master section
     KnobComponent masterTuneKnob_;
 
+    // VCF Trim and Condition (cosmetic small knobs)
+    juce::Slider vcfTrimSlider_;
+    juce::Slider conditionSlider_;
+
     // Drive section
     juce::ComboBox driveTypeBox_;
     KnobComponent driveToneKnob_;

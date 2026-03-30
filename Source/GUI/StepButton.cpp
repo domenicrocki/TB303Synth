@@ -10,30 +10,39 @@ void StepButton::paint(juce::Graphics& g)
     // LED at top
     float ledSize = 5.0f;
     float ledX = bounds.getCentreX() - ledSize * 0.5f;
-    if (current_)
-    {
-        g.setColour(TB303LookAndFeel::getLEDOn().withAlpha(0.2f));
-        g.fillEllipse(ledX - 3.0f, -1.0f, ledSize + 6.0f, ledSize + 6.0f);
-    }
-    g.setColour(current_ ? TB303LookAndFeel::getLEDOn() : TB303LookAndFeel::getLEDOff());
-    g.fillEllipse(ledX, 1.0f, ledSize, ledSize);
+    TB303LookAndFeel::paintLED(g, ledX, 1.0f, ledSize, current_);
 
-    // Button body
-    auto buttonArea = bounds.withTrimmedTop(ledSize + 4.0f);
+    // Toggle switch body (silver metallic look)
+    auto switchArea = bounds.withTrimmedTop(ledSize + 4.0f);
 
-    juce::Colour bgCol = active_ ? TB303LookAndFeel::getBgLight().brighter(0.2f) : TB303LookAndFeel::getBgLight();
-    g.setColour(bgCol);
-    g.fillRoundedRectangle(buttonArea, 2.0f);
+    // Switch groove background
+    g.setColour(juce::Colour(0xFF404048));
+    g.fillRoundedRectangle(switchArea, 3.0f);
 
-    juce::Colour borderCol = active_ ? TB303LookAndFeel::getNeonCyan().withAlpha(0.5f) : TB303LookAndFeel::getBorderLight();
-    g.setColour(borderCol);
-    g.drawRoundedRectangle(buttonArea, 2.0f, 0.8f);
-
+    // Toggle lever - top or bottom depending on active state
+    auto leverH = switchArea.getHeight() * 0.48f;
+    juce::Rectangle<float> leverArea;
     if (active_)
+        leverArea = switchArea.withHeight(leverH);
+    else
+        leverArea = switchArea.withTrimmedTop(switchArea.getHeight() - leverH);
+
+    // Silver metallic lever
     {
-        g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.08f));
-        g.fillRoundedRectangle(buttonArea, 2.0f);
+        juce::ColourGradient gr(juce::Colour(0xFFE0E0E4), leverArea.getX(), leverArea.getY(),
+                                 juce::Colour(0xFFA0A0A8), leverArea.getX(), leverArea.getBottom(), false);
+        g.setGradientFill(gr);
+        g.fillRoundedRectangle(leverArea.reduced(1.0f), 2.0f);
     }
+
+    // Lever highlight
+    g.setColour(juce::Colour(0xFFEEEEF0));
+    g.drawLine(leverArea.getX() + 3, leverArea.getY() + 2,
+               leverArea.getRight() - 3, leverArea.getY() + 2, 0.8f);
+
+    // Border
+    g.setColour(juce::Colour(0xFF606068));
+    g.drawRoundedRectangle(switchArea, 3.0f, 1.0f);
 }
 
 void StepButton::mouseDown(const juce::MouseEvent& /*e*/)

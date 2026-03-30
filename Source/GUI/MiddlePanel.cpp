@@ -20,7 +20,7 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
         processor.getAPVTS(), "playMode", playModeBox_);
 
     patternLabel_.setFont(juce::Font(8.0f, juce::Font::bold));
-    patternLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDim());
+    patternLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::textDk());
     addAndMakeVisible(patternLabel_);
 
     for (int i = 0; i < 8; ++i)
@@ -44,7 +44,7 @@ MiddlePanel::MiddlePanel(TB303AudioProcessor& processor)
     };
 
     patchLabel_.setFont(juce::Font(8.0f, juce::Font::bold));
-    patchLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::getTextDim());
+    patchLabel_.setColour(juce::Label::textColourId, TB303LookAndFeel::textDk());
     addAndMakeVisible(patchLabel_);
 
     updatePatchList();
@@ -125,84 +125,109 @@ void MiddlePanel::updatePatchList()
 void MiddlePanel::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
-    TB303LookAndFeel::drawFuturisticPanel(g, bounds, TB303LookAndFeel::getNeonPurple());
+    TB303LookAndFeel::paintSilverBg(g, bounds, true);
 
     // PLAY MODE label
-    g.setColour(TB303LookAndFeel::getTextDim());
+    g.setColour(TB303LookAndFeel::textDk());
     g.setFont(juce::Font(8.0f, juce::Font::bold));
-    g.drawText("PLAY MODE", 280, 6, 80, 10, juce::Justification::centred);
+    g.drawText("PLAY MODE", 430, 6, 80, 10, juce::Justification::centred);
+
+    // Play mode position labels around the combo box area
+    g.setFont(juce::Font(7.0f, juce::Font::bold));
+    g.setColour(TB303LookAndFeel::textDk().withAlpha(0.7f));
+    g.drawText("FORWARD", 430, 76, 80, 10, juce::Justification::centred);
+    g.drawText("REVERSE", 510, 55, 50, 10, juce::Justification::centredLeft);
+    g.drawText("FWD&REV", 510, 35, 50, 10, juce::Justification::centredLeft);
+    g.drawText("INVERT", 390, 35, 50, 10, juce::Justification::centredRight);
+    g.drawText("RANDOM", 390, 55, 50, 10, juce::Justification::centredRight);
 
     // LIST label
-    g.drawText("LIST", 430, 6, 30, 10, juce::Justification::centredLeft);
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
+    g.setColour(TB303LookAndFeel::textDk());
+    g.drawText("LIST", 580, 6, 30, 10, juce::Justification::centredLeft);
 
-    // Separator
+    // Scale markings near scale knob
+    g.setFont(juce::Font(7.0f, juce::Font::bold));
+    g.setColour(TB303LookAndFeel::textDk().withAlpha(0.7f));
+    g.drawText("1/16T", 330, 92, 30, 10, juce::Justification::centred);
+    g.drawText("1/16", 355, 76, 25, 10, juce::Justification::centred);
+    g.drawText("1/32", 365, 56, 25, 10, juce::Justification::centred);
+
+    // Separator before TB-303 branding
     float sepX = bounds.getWidth() - 240.0f;
-    TB303LookAndFeel::drawGlowLine(g, sepX, 8.0f, sepX, bounds.getHeight() - 8.0f,
-                                     TB303LookAndFeel::getNeonPurple());
+    g.setColour(juce::Colour(0xFF909098));
+    g.drawLine(sepX, 8.0f, sepX, bounds.getHeight() - 8.0f, 1.0f);
 
-    // TB-303 branding (futuristic)
+    // TB-303 branding (silver metallic style)
     int brandX = static_cast<int>(bounds.getWidth()) - 230;
 
-    g.setColour(TB303LookAndFeel::getNeonCyan());
+    g.setColour(TB303LookAndFeel::textDk());
     g.setFont(juce::Font(34.0f, juce::Font::bold));
     g.drawText("TB-303", brandX, 8, 200, 40, juce::Justification::centredRight);
 
-    // Glow
-    g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.06f));
-    g.setFont(juce::Font(34.0f, juce::Font::bold));
-    g.drawText("TB-303", brandX - 1, 7, 200, 40, juce::Justification::centredRight);
-
-    g.setColour(TB303LookAndFeel::getTextDim());
+    g.setColour(TB303LookAndFeel::textDk().withAlpha(0.7f));
     g.setFont(juce::Font(11.0f));
     g.drawText("Computer Controlled", brandX, 46, 200, 16, juce::Justification::centredRight);
 
     // Horizontal accent line
-    TB303LookAndFeel::drawGlowLine(g, static_cast<float>(brandX + 60), 46.0f,
-                                     bounds.getWidth() - 14.0f, 46.0f, TB303LookAndFeel::getNeonCyan());
+    g.setColour(juce::Colour(0xFF909098));
+    g.drawLine(static_cast<float>(brandX + 60), 66.0f,
+               bounds.getWidth() - 14.0f, 66.0f, 1.0f);
 
-    // Level meter (futuristic)
-    auto meterBounds = juce::Rectangle<float>(470.0f, 92.0f, 150.0f, 4.0f);
-    g.setColour(TB303LookAndFeel::getBgLight());
+    // Level meter bar (red/white)
+    auto meterBounds = juce::Rectangle<float>(620.0f, 92.0f, 150.0f, 6.0f);
+    g.setColour(juce::Colour(0xFFD0D0D4));
     g.fillRoundedRectangle(meterBounds, 2.0f);
-    // Gradient fill
-    juce::ColourGradient meterGrad(TB303LookAndFeel::getNeonCyan(), meterBounds.getX(), meterBounds.getCentreY(),
-                                     TB303LookAndFeel::getNeonPink(), meterBounds.getRight(), meterBounds.getCentreY(), false);
+    g.setColour(juce::Colour(0xFF909098));
+    g.drawRoundedRectangle(meterBounds, 2.0f, 0.5f);
+    // Fill portion
+    juce::ColourGradient meterGrad(juce::Colour(0xFF40C040), meterBounds.getX(), meterBounds.getCentreY(),
+                                     juce::Colour(0xFFE02020), meterBounds.getRight(), meterBounds.getCentreY(), false);
     g.setGradientFill(meterGrad);
     g.fillRoundedRectangle(meterBounds.withWidth(meterBounds.getWidth() * 0.7f), 2.0f);
 }
 
 void MiddlePanel::resized()
 {
-    int w = getWidth();
     int y = 10;
 
+    // Top-left: OPTION, HELP, ABOUT buttons
     optionButton_.setBounds(10, y, 50, 20);
     helpButton_.setBounds(62, y, 40, 20);
     aboutButton_.setBounds(104, y, 48, 20);
 
-    shuffleKnob_.setBounds(10, y + 26, 68, 68);
-    scaleKnob_.setBounds(82, y + 26, 68, 68);
-    tempoKnob_.setBounds(160, y + 12, 68, 72);
-
-    playModeBox_.setBounds(268, y + 18, 110, 44);
-
-    patternLabel_.setBounds(430, y + 8, 60, 12);
-    patternList_.setBounds(470, y + 8, 170, 22);
-    patternDown_.setBounds(644, y + 8, 22, 22);
-    patternUp_.setBounds(668, y + 8, 22, 22);
-    patternWrite_.setBounds(694, y + 8, 50, 22);
-
-    patchLabel_.setBounds(430, y + 38, 60, 12);
-    patchList_.setBounds(470, y + 38, 170, 22);
-    patchDown_.setBounds(644, y + 38, 22, 22);
-    patchUp_.setBounds(668, y + 38, 22, 22);
-    patchWrite_.setBounds(694, y + 38, 50, 22);
-
-    int bankX = w - 185;
+    // Bank buttons below: 2 rows of 4
+    int bankX = 10;
     int bankW = 34;
-    int bankH = 26;
+    int bankH = 22;
     for (int i = 0; i < 4; ++i)
-        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), y + 66, bankW, bankH);
+        bankButtons_[i]->setBounds(bankX + i * (bankW + 4), y + 26, bankW, bankH);
     for (int i = 4; i < 8; ++i)
-        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), y + 66 + bankH + 3, bankW, bankH);
+        bankButtons_[i]->setBounds(bankX + (i - 4) * (bankW + 4), y + 26 + bankH + 3, bankW, bankH);
+
+    // SHUFFLE knob
+    shuffleKnob_.setBounds(168, y + 10, 72, 80);
+
+    // SCALE knob
+    scaleKnob_.setBounds(248, y + 10, 72, 80);
+
+    // TEMPO knob
+    tempoKnob_.setBounds(328, y + 10, 72, 80);
+
+    // PLAY MODE combo box
+    playModeBox_.setBounds(438, y + 18, 100, 44);
+
+    // Pattern row
+    patternLabel_.setBounds(580, y + 8, 55, 12);
+    patternList_.setBounds(634, y + 8, 170, 22);
+    patternDown_.setBounds(808, y + 8, 22, 22);
+    patternUp_.setBounds(832, y + 8, 22, 22);
+    patternWrite_.setBounds(858, y + 8, 50, 22);
+
+    // Patch row
+    patchLabel_.setBounds(580, y + 38, 55, 12);
+    patchList_.setBounds(634, y + 38, 170, 22);
+    patchDown_.setBounds(808, y + 38, 22, 22);
+    patchUp_.setBounds(832, y + 38, 22, 22);
+    patchWrite_.setBounds(858, y + 38, 50, 22);
 }

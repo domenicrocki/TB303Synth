@@ -97,16 +97,41 @@ BottomPanel::~BottomPanel() { stopTimer(); }
 void BottomPanel::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
-    TB303LookAndFeel::drawFuturisticPanel(g, bounds, TB303LookAndFeel::getNeonPink());
+    TB303LookAndFeel::paintDarkBg(g, bounds);
 
-    // Note labels above keyboard
-    g.setColour(TB303LookAndFeel::getTextDim());
+    // --- Top row labels ---
+    g.setColour(TB303LookAndFeel::textLt());
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
+
+    // POSITION LOCK TO DAW frame
+    auto posFrame = juce::Rectangle<float>(8.0f, 12.0f, 95.0f, 50.0f);
+    g.setColour(juce::Colour(0xFF505058));
+    g.drawRoundedRectangle(posFrame, 3.0f, 1.0f);
+    g.setColour(TB303LookAndFeel::textLt());
+    g.setFont(juce::Font(7.0f, juce::Font::bold));
+    g.drawText("POSITION LOCK", 12, 14, 87, 10, juce::Justification::centred);
+    g.drawText("TO DAW", 12, 23, 87, 10, juce::Justification::centred);
+
+    // KEYBOARD label
+    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.setColour(TB303LookAndFeel::textLt());
+    g.drawText("KEYBOARD", 112, 12, 65, 12, juce::Justification::centred);
+
+    // EDIT label
+    g.drawText("EDIT", 112, 62, 65, 12, juce::Justification::centred);
+
+    // Note name labels above keyboard
+    g.setColour(TB303LookAndFeel::textLt());
     g.setFont(juce::Font(8.0f, juce::Font::bold));
 
     const char* noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C" };
-    int kbX = 185;
-    int kbW = 480;
+    int kbX = 195;
+    int kbW = 500;
     float whiteKeyW = static_cast<float>(kbW) / 8.0f;
+
+    // Map all 13 note names to their x positions
+    // White keys: C(0), D(1), E(2), F(3), G(4), A(5), B(6), C(7) -> white key indices
+    // Black keys positioned between whites
     int whiteIdx = 0;
     for (int i = 0; i < 13; ++i)
     {
@@ -117,35 +142,82 @@ void BottomPanel::paint(juce::Graphics& g)
             g.drawText(noteNames[i], static_cast<int>(xPos - 10), 12, 20, 10, juce::Justification::centred);
             whiteIdx++;
         }
+        else
+        {
+            // Black key note names - position between white keys
+            // Find the corresponding position
+            float prevWhite = 0.0f;
+            if (i == 1) prevWhite = 0.0f; // between C and D
+            else if (i == 3) prevWhite = 1.0f; // between D and E
+            else if (i == 6) prevWhite = 3.0f; // between F and G
+            else if (i == 8) prevWhite = 4.0f; // between G and A
+            else if (i == 10) prevWhite = 5.0f; // between A and B
+            float xPos = static_cast<float>(kbX) + (prevWhite + 1.0f) * whiteKeyW;
+            g.drawText(noteNames[i], static_cast<int>(xPos - 10), 12, 20, 10, juce::Justification::centred);
+        }
     }
 
-    // Section labels
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.setColour(TB303LookAndFeel::getTextDim());
-    g.drawText("KEYBOARD", 120, 12, 65, 12, juce::Justification::centred);
-
-    // Notation symbols above accent/slide/down/up
+    // Triplet marks above ACCENT and SLIDE
     g.setFont(juce::Font(11.0f));
-    g.setColour(TB303LookAndFeel::getTextDim());
-    int symX = 690;
-    int symGap = 60;
+    g.setColour(TB303LookAndFeel::textLt());
+    int symX = 720;
+    int symGap = 62;
     g.drawText("3", symX + 14, 10, 20, 12, juce::Justification::centred);
     g.drawText("3", symX + symGap + 14, 10, 20, 12, juce::Justification::centred);
 
-    // PATTERN / OCTAVE labels (neon pink)
-    int bottomRowY = static_cast<int>(bounds.getHeight()) - 60;
-    g.setColour(TB303LookAndFeel::getNeonPink());
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
-    g.drawText("PATTERN", 270, bottomRowY + 42, 60, 12, juce::Justification::centred);
-    g.drawText("OCTAVE", static_cast<int>(bounds.getWidth()) - 200, bottomRowY + 42, 60, 12, juce::Justification::centred);
+    // Note symbols above DOWN and UP
+    g.setFont(juce::Font(10.0f));
+    // Down arrow / note symbol
+    {
+        juce::Path arrow;
+        float ax = static_cast<float>(symX + symGap * 2 + 22);
+        arrow.addTriangle(ax, 20.0f, ax + 5.0f, 12.0f, ax - 5.0f, 12.0f);
+        g.fillPath(arrow);
+    }
+    // Up arrow / note symbol
+    {
+        juce::Path arrow;
+        float ax = static_cast<float>(symX + symGap * 3 + 22);
+        arrow.addTriangle(ax, 10.0f, ax + 5.0f, 18.0f, ax - 5.0f, 18.0f);
+        g.fillPath(arrow);
+    }
 
-    // Step numbers
-    g.setColour(TB303LookAndFeel::getNeonCyan().withAlpha(0.6f));
-    g.setFont(juce::Font(8.0f, juce::Font::bold));
-    int stepX = 340;
-    int stepGap = 48;
+    // RANDOMIZE frame
+    float rightFrameX = bounds.getWidth() - 120.0f;
+    auto randFrame = juce::Rectangle<float>(rightFrameX, 12.0f, 108.0f, 44.0f);
+    g.setColour(juce::Colour(0xFF505058));
+    g.drawRoundedRectangle(randFrame, 3.0f, 1.0f);
+
+    // GENERATE/UNDO frame
+    auto genFrame = juce::Rectangle<float>(rightFrameX, 60.0f, 108.0f, 44.0f);
+    g.drawRoundedRectangle(genFrame, 3.0f, 1.0f);
+
+    // --- Bottom row ---
+    int bottomRowY = static_cast<int>(bounds.getHeight()) - 100;
+
+    // RUN/STOP frame area (already has LED button)
+
+    // PATTERN label (orange/red)
+    g.setColour(TB303LookAndFeel::accentOr());
+    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.drawText("PATTERN", 200, bottomRowY + 52, 60, 12, juce::Justification::centred);
+
+    // Step numbers in orange below step buttons
+    g.setColour(TB303LookAndFeel::accentOr());
+    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    int stepX = 280;
+    int stepGap = 52;
     for (int i = 0; i < 8; ++i)
-        g.drawText(juce::String(i + 1), stepX + i * stepGap, bottomRowY + 42, 40, 12, juce::Justification::centred);
+        g.drawText(juce::String(i + 1), stepX + i * stepGap, bottomRowY + 52, 44, 12, juce::Justification::centred);
+
+    // OCTAVE label (orange/red)
+    g.setColour(TB303LookAndFeel::accentOr());
+    g.drawText("OCTAVE", static_cast<int>(bounds.getWidth()) - 220, bottomRowY + 52, 60, 12, juce::Justification::centred);
+
+    // MODIFY/UNDO frame
+    auto modFrame = juce::Rectangle<float>(rightFrameX, static_cast<float>(bottomRowY) + 8.0f, 108.0f, 44.0f);
+    g.setColour(juce::Colour(0xFF505058));
+    g.drawRoundedRectangle(modFrame, 3.0f, 1.0f);
 }
 
 void BottomPanel::resized()
@@ -156,30 +228,43 @@ void BottomPanel::resized()
     int btnH = 50;
     int btnW = 55;
 
-    posLockButton_.setBounds(12, topY, 85, 42);
-    keyboardToggle_.setBounds(120, topY + 12, 55, 30);
-    editButton_.setBounds(120, topY + 48, 55, 40);
-    keyboard_.setBounds(185, topY + 6, 480, 85);
+    // Top row: Position lock
+    posLockButton_.setBounds(14, topY + 18, 82, 30);
 
-    int rbX = 690;
-    int rbGap = 60;
+    // Keyboard toggle and edit
+    keyboardToggle_.setBounds(118, topY + 6, 60, 30);
+    editButton_.setBounds(118, topY + 50, 60, 40);
+
+    // Piano keyboard
+    keyboard_.setBounds(195, topY + 6, 500, 90);
+
+    // Accent, Slide, Down, Up buttons
+    int rbX = 720;
+    int rbGap = 62;
     accentButton_.setBounds(rbX, topY, btnW, btnH);
     slideButton_.setBounds(rbX + rbGap, topY, btnW, btnH);
     downButton_.setBounds(rbX + rbGap * 2, topY, btnW, btnH);
     upButton_.setBounds(rbX + rbGap * 3, topY, btnW, btnH);
 
-    randomizeButton_.setBounds(w - 110, topY, 95, 38);
-    generateButton_.setBounds(w - 110, topY + 42, 95, 38);
+    // Far right: Randomize and Generate/Undo
+    float rightX = static_cast<float>(w) - 116.0f;
+    randomizeButton_.setBounds(static_cast<int>(rightX) + 4, topY, 100, 38);
+    generateButton_.setBounds(static_cast<int>(rightX) + 4, topY + 46, 100, 38);
 
-    int bottomY = h - 60;
-    runStopButton_.setBounds(12, topY + 50, 85, 45);
+    // Bottom row
+    int bottomY = h - 96;
 
-    int stepX = 340;
-    int stepGap = 48;
+    // RUN/STOP
+    runStopButton_.setBounds(14, bottomY, 85, 50);
+
+    // Step buttons
+    int stepX = 280;
+    int stepGap = 52;
     for (int i = 0; i < 8; ++i)
-        stepButtons_[i]->setBounds(stepX + i * stepGap, bottomY, 40, 42);
+        stepButtons_[i]->setBounds(stepX + i * stepGap, bottomY, 44, 46);
 
-    modifyButton_.setBounds(w - 110, bottomY, 95, 38);
+    // MODIFY/UNDO
+    modifyButton_.setBounds(static_cast<int>(rightX) + 4, bottomY + 4, 100, 38);
 }
 
 void BottomPanel::timerCallback()
