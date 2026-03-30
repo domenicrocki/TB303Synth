@@ -57,8 +57,7 @@ private:
     juce::ToggleButton tempoSyncButton_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tempoSyncAttachment_;
 
-    // Master
-    KnobComponent masterTuneKnob_;
+    // Shuffle
     KnobComponent shuffleKnob_;
 
     // Sequencer section

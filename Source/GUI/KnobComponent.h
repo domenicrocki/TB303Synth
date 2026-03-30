@@ -18,5 +18,5 @@ private:
     juce::Slider slider_;
     juce::Label label_;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment_;
-    bool labelBelow_ = false;
+    bool labelBelow_ = true;
 };

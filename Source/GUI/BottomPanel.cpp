@@ -92,7 +92,6 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     addAndMakeVisible(patternClearButton_);
 
     // Row 4 buttons
-    addAndMakeVisible(patternSelectButton_);
     modifyUndoButton_.onClick = [this]() {
         if (hasUndo_) {
             processor_.getSequencer().getCurrentPatternRef() = undoPattern_;
@@ -189,8 +188,8 @@ void BottomPanel::resized()
     patternClearButton_.setBounds(1120, 150, 110, 50);
 
     // Row 4 - left column [10, 230, 110, 235]
-    patternSelectButton_.setBounds(20, 250, 90, 50);
-    modifyUndoButton_.setBounds(20, 310, 90, 50);
+    // Modify/Undo in Pattern section (right side)
+    modifyUndoButton_.setBounds(1240, 150, 110, 50);
 
     // Step buttons [125, 230, 1370, 235] - 16 buttons
     int stepStartX = 230;

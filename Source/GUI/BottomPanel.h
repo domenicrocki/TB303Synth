@@ -40,7 +40,6 @@ private:
     juce::TextButton patternClearButton_{ "PATTERN\nCLEAR" };
 
     // Row 4
-    juce::TextButton patternSelectButton_{ "PATTERN\nSELECT" };
     juce::TextButton modifyUndoButton_{ "MODIFY /\nUNDO" };
 
     // Step buttons - ALL 16

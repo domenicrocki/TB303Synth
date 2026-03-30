@@ -16,7 +16,6 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
       driveLevelKnob_("LEVEL", "driveLevel", processor.getAPVTS()),
       delayTimeKnob_("TIME", "delayTime", processor.getAPVTS()),
       delayLevelKnob_("LEVEL", "delayLevel", processor.getAPVTS()),
-      masterTuneKnob_("MASTER\nTUNE", "masterTune", processor.getAPVTS()),
       shuffleKnob_("SHUFFLE", "shuffle", processor.getAPVTS())
 {
     // Set arc colors per section
@@ -32,7 +31,6 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     driveLevelKnob_.setArcColor(TB303Colors::orange());
     delayTimeKnob_.setArcColor(TB303Colors::orange());
     delayLevelKnob_.setArcColor(TB303Colors::orange());
-    masterTuneKnob_.setArcColor(TB303Colors::green());
     shuffleKnob_.setArcColor(TB303Colors::green());
 
     // VCO waveform buttons
@@ -99,8 +97,7 @@ TopPanel::TopPanel(TB303AudioProcessor& processor)
     tempoSyncAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         apvts_, "tempoSync", tempoSyncButton_);
 
-    // Master
-    addAndMakeVisible(masterTuneKnob_);
+    // Shuffle
     addAndMakeVisible(shuffleKnob_);
 
     // Sequencer section
@@ -193,7 +190,7 @@ void TopPanel::paint(juce::Graphics& g)
     TB303LookAndFeel::paintSectionPanel(g, { 5, 160, 215, 145 }, "Clock", TB303Colors::cyan());
     TB303LookAndFeel::paintSectionPanel(g, { 225, 160, 295, 145 }, "Overdrive", TB303Colors::orange());
     TB303LookAndFeel::paintSectionPanel(g, { 525, 160, 305, 145 }, "Delay", TB303Colors::orange());
-    TB303LookAndFeel::paintSectionPanel(g, { 835, 160, 185, 145 }, "Master", TB303Colors::green());
+    TB303LookAndFeel::paintSectionPanel(g, { 835, 160, 185, 145 }, "Shuffle", TB303Colors::green());
     TB303LookAndFeel::paintSectionPanel(g, { 1025, 160, 470, 145 }, "Sequencer", TB303Colors::pink());
 
     // BPM display in Clock section
@@ -242,9 +239,8 @@ void TopPanel::resized()
     delayLevelKnob_.setBounds(635, 206, 90, 90);
     tempoSyncButton_.setBounds(735, 210, 80, 24);
 
-    // Master [835, 160, 185, 145]
-    masterTuneKnob_.setBounds(845, 180, 80, 90);
-    shuffleKnob_.setBounds(930, 180, 80, 90);
+    // Shuffle [835, 160, 185, 145] - centered
+    shuffleKnob_.setBounds(870, 180, 120, 110);
 
     // Sequencer [1025, 160, 470, 145]
     scaleBox_.setBounds(1040, 180, 90, 22);
