@@ -2,8 +2,6 @@
 
 A Roland TB-303 Bass Line synthesizer clone built as a **VST3 plugin** and **Standalone application** using the [JUCE](https://juce.com/) framework.
 
-![TB-303 Synthesizer Plugin](screenshot.png)
-
 ## Features
 
 ### Sound Engine
