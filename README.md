@@ -18,7 +18,7 @@ A TB-303 Bass Line synthesizer clone by **Rocki**, built as a **VST3 plugin** an
 
 ### Effects
 - **Overdrive** — 3 types: Soft clip, Hard clip, Tube
-  - Drive (depth) and Tone controls
+  - Drive (depth), Tone, and Level controls
 - **Delay** — 3 types: Digital (clean), Tape (filtered feedback), Ping Pong (stereo)
   - Time, Level (wet mix) controls
   - **Tempo Sync** — snaps delay time to musical note divisions
@@ -53,7 +53,7 @@ The interface is organized into **color-coded sections** for quick identificatio
 | **Filter Envelope** | Purple | Env Mod, Decay, Accent |
 | **Mixer (VCA)** | Green | Volume |
 | **Clock** | Cyan | BPM Display, Tempo |
-| **Overdrive** | Orange | Drive Type, Drive, Tone |
+| **Overdrive** | Orange | Drive Type, Drive, Tone, Level |
 | **Delay** | Orange | Delay Type, Time, Level, Tempo Sync |
 | **Master** | Green | Master Tune, Shuffle |
 | **Sequencer** | Pink | Scale, Play Mode, Pattern/Patch Select, Bank 1-8 |
@@ -188,6 +188,7 @@ Then rescan plugins in your DAW (Ableton Live, Logic Pro, Bitwig, Reaper, FL Stu
 | **DRIVE TYPE** | Distortion character: Soft / Hard / Tube |
 | **DRIVE** | Drive amount (depth of distortion) |
 | **TONE** | Post-drive tone shaping (dark to bright) |
+| **LEVEL** | Overdrive output level |
 
 ### Delay (FX)
 
