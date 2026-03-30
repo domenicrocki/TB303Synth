@@ -122,7 +122,7 @@ void TopPanel::paint(juce::Graphics& g)
     g.drawText("VOLUME", 835, 130, 185, 14, juce::Justification::centred);
 
     // Branding area
-    TB303LookAndFeel::paintSectionPanel(g, { 1025, 5, 470, 150 }, "", TB303Colors::cyan());
+    TB303LookAndFeel::paintSectionPanel(g, { 1025, 5, 470, 300 }, "", TB303Colors::cyan());
     g.setColour(TB303Colors::cyan());
     g.setFont(juce::Font(42.0f, juce::Font::bold));
     g.drawText("Rocki", 1040, 20, 200, 45, juce::Justification::centredLeft);

@@ -182,8 +182,8 @@ void BottomPanel::paint(juce::Graphics& g)
     (void)bounds;
 
     // Row 3 panels
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 215, 220 }, "Sequencer", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 230, 5, 540, 220 }, "Keyboard", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 270, 220 }, "Sequencer", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 285, 5, 485, 220 }, "Keyboard", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 775, 5, 145, 220 }, "Octave", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 925, 5, 175, 220 }, "Articulation", TB303Colors::pink());
     TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Randomize", TB303Colors::pink());
@@ -192,8 +192,8 @@ void BottomPanel::paint(juce::Graphics& g)
     g.setColour(TB303Colors::textDim());
     g.setFont(juce::Font(9.0f, juce::Font::bold));
     const char* noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C" };
-    int kbX = 245;
-    int kbW = 510;
+    int kbX = 300;
+    int kbW = 455;
     float whiteKeyW = static_cast<float>(kbW) / 8.0f;
     int whiteIdx = 0;
     for (int i = 0; i < 13; ++i) {
@@ -225,19 +225,19 @@ void BottomPanel::paint(juce::Graphics& g)
 
 void BottomPanel::resized()
 {
-    // Sequencer [10, 5, 215, 220]
-    scaleBox_.setBounds(20, 28, 90, 22);
-    playModeBox_.setBounds(115, 28, 100, 22);
-    patternList_.setBounds(20, 58, 120, 22);
-    patchList_.setBounds(20, 86, 120, 22);
-    int bankX = 145;
+    // Sequencer [10, 5, 270, 220]
+    scaleBox_.setBounds(20, 28, 100, 22);
+    playModeBox_.setBounds(125, 28, 110, 22);
+    patternList_.setBounds(20, 58, 130, 22);
+    patchList_.setBounds(20, 86, 130, 22);
+    int bankX = 155;
     for (int i = 0; i < 4; ++i)
         bankButtons_[i]->setBounds(bankX + i * 30, 58, 26, 20);
     for (int i = 4; i < 8; ++i)
         bankButtons_[i]->setBounds(bankX + (i - 4) * 30, 84, 26, 20);
 
-    // Keyboard [230, 5, 540, 220]
-    keyboard_.setBounds(245, 40, 510, 170);
+    // Keyboard [285, 5, 485, 220]
+    keyboard_.setBounds(300, 40, 455, 170);
 
     // Transport moved to Row 4 [10, 230, 110, 235]
     runStopButton_.setBounds(20, 260, 90, 90);
