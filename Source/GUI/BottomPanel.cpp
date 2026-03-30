@@ -8,8 +8,12 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     runStopButton_.setToggleMode(true);
     runStopButton_.setAccentColor(TB303Colors::pink());
     runStopButton_.onClick = [this](bool on) {
-        if (on) processor_.getSequencer().start();
-        else    processor_.getSequencer().stop();
+        if (on) {
+            processor_.getSequencer().start();
+        } else {
+            processor_.getSequencer().stop();
+            processor_.releaseNote(); // silence any held note
+        }
     };
     addAndMakeVisible(runStopButton_);
 
@@ -145,6 +149,7 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
     addAndMakeVisible(patternList_);
     patternList_.onChange = [this]() {
         processor_.getSequencer().setCurrentPattern(patternList_.getSelectedId() - 1);
+        updateStepDisplay();
     };
 
     updatePatchList();
@@ -160,6 +165,7 @@ BottomPanel::BottomPanel(TB303AudioProcessor& processor)
             processor_.getSequencer().setCurrentBank(i);
             for (int j = 0; j < 8; ++j)
                 bankButtons_[j]->setToggleState(j == i, juce::dontSendNotification);
+            updateStepDisplay();
         };
         btn->setClickingTogglesState(false);
         bankButtons_.add(btn);

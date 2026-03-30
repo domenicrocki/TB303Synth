@@ -9,6 +9,7 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void mouseDown(const juce::MouseEvent& e) override;
+    void mouseUp(const juce::MouseEvent& e) override;
 
     void setLEDOn(bool on);
     bool isLEDOn() const { return ledOn_; }

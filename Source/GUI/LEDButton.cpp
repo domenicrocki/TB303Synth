@@ -40,10 +40,22 @@ void LEDButton::resized() {}
 
 void LEDButton::mouseDown(const juce::MouseEvent& /*e*/)
 {
-    if (toggleMode_) ledOn_ = !ledOn_;
-    else ledOn_ = true;
+    if (toggleMode_)
+        ledOn_ = !ledOn_;
+    else
+        ledOn_ = true;
     repaint();
     if (onClick) onClick(ledOn_);
+}
+
+void LEDButton::mouseUp(const juce::MouseEvent& /*e*/)
+{
+    // Momentary mode: release LED when mouse released
+    if (!toggleMode_ && ledOn_)
+    {
+        ledOn_ = false;
+        repaint();
+    }
 }
 
 void LEDButton::setLEDOn(bool on)
