@@ -16,13 +16,13 @@ void StepSequencer::updateTiming()
     switch (scale_)
     {
         case Scale::SixteenthTriplet:
-            stepsPerBeat = 6.0; // 1/16T
+            stepsPerBeat = 6.0;
             break;
         case Scale::Sixteenth:
-            stepsPerBeat = 4.0; // 1/16
+            stepsPerBeat = 4.0;
             break;
         case Scale::ThirtySecond:
-            stepsPerBeat = 8.0; // 1/32
+            stepsPerBeat = 8.0;
             break;
     }
 
@@ -35,42 +35,125 @@ void StepSequencer::processBlock(int numSamples, TB303Voice& voice)
     if (!playing_)
         return;
 
+    // Calculate shuffle-adjusted step length once (not per-sample)
+    double stepLength = samplesPerStep_;
+    if (shuffle_ > 0.0f)
+    {
+        if (currentStep_ % 2 == 1)
+            stepLength = samplesPerStep_ * (1.0 + static_cast<double>(shuffle_) * 0.7);
+        else
+            stepLength = samplesPerStep_ * (1.0 - static_cast<double>(shuffle_) * 0.7);
+
+        stepLength = juce::jmax(stepLength, samplesPerStep_ * 0.2);
+    }
+
+    // Gate length: 75% of step for normal notes, 100% for slide notes
+    double gateLength = stepLength * 0.75;
+    auto& pattern = getCurrentPatternRef();
+    if (currentStep_ < pattern.numSteps)
+    {
+        int nextStep = peekNextStep();
+        if (nextStep < pattern.numSteps && pattern.steps[nextStep].slide)
+            gateLength = stepLength; // hold through to next note for slide
+    }
+
     for (int i = 0; i < numSamples; ++i)
     {
         sampleCounter_ += 1.0;
 
-        // Apply shuffle: delay even steps
-        double currentStepLength = samplesPerStep_;
-        if (currentStep_ % 2 == 1 && shuffle_ > 0.0f)
+        // Note-off at gate end (only if not sliding into next note)
+        if (noteIsOn_ && sampleCounter_ >= gateLength && !slidingToNext_)
         {
-            currentStepLength = samplesPerStep_ * (1.0 + static_cast<double>(shuffle_) * 0.75);
-        }
-        else if (currentStep_ % 2 == 0 && shuffle_ > 0.0f)
-        {
-            currentStepLength = samplesPerStep_ * (1.0 - static_cast<double>(shuffle_) * 0.75);
+            voice.noteOff();
+            noteIsOn_ = false;
         }
 
-        if (sampleCounter_ >= currentStepLength)
+        // Step advance
+        if (sampleCounter_ >= stepLength)
         {
-            sampleCounter_ -= currentStepLength;
+            sampleCounter_ -= stepLength;
+
+            // Advance step
+            currentStep_ = getNextStep();
+
+            // Recalculate shuffle for new step
+            if (shuffle_ > 0.0f)
+            {
+                if (currentStep_ % 2 == 1)
+                    stepLength = samplesPerStep_ * (1.0 + static_cast<double>(shuffle_) * 0.7);
+                else
+                    stepLength = samplesPerStep_ * (1.0 - static_cast<double>(shuffle_) * 0.7);
+                stepLength = juce::jmax(stepLength, samplesPerStep_ * 0.2);
+            }
+            else
+            {
+                stepLength = samplesPerStep_;
+            }
+
+            // Check if next step has slide (for gate length)
+            int upcoming = peekNextStep();
+            slidingToNext_ = (upcoming < pattern.numSteps && pattern.steps[upcoming].slide
+                              && pattern.steps[upcoming].active);
+            gateLength = slidingToNext_ ? stepLength : stepLength * 0.75;
 
             // Trigger current step
-            auto& pattern = getCurrentPatternRef();
             auto& step = pattern.steps[currentStep_];
 
             if (step.active)
             {
                 int midiNote = step.note + (step.octave * 12);
+                midiNote = juce::jlimit(12, 120, midiNote);
                 voice.noteOn(midiNote, step.accent, step.slide);
+                noteIsOn_ = true;
             }
             else
             {
-                voice.noteOff();
+                // Rest: release previous note
+                if (noteIsOn_)
+                {
+                    voice.noteOff();
+                    noteIsOn_ = false;
+                }
             }
-
-            // Advance to next step
-            currentStep_ = getNextStep();
         }
+    }
+}
+
+int StepSequencer::peekNextStep() const
+{
+    auto& pattern = patternData_.getPattern(currentBank_, currentPattern_);
+    int numSteps = pattern.numSteps;
+
+    switch (playMode_)
+    {
+        case PlayMode::Forward:
+            return (currentStep_ + 1) % numSteps;
+
+        case PlayMode::Reverse:
+            return (currentStep_ - 1 + numSteps) % numSteps;
+
+        case PlayMode::FwdAndRev:
+        {
+            if (forward_)
+            {
+                int next = currentStep_ + 1;
+                return (next >= numSteps) ? numSteps - 2 : next;
+            }
+            else
+            {
+                int next = currentStep_ - 1;
+                return (next < 0) ? 1 : next;
+            }
+        }
+
+        case PlayMode::Invert:
+            return (numSteps - 1 - ((currentStep_ + 1) % numSteps));
+
+        case PlayMode::Random:
+            return -1; // can't predict
+
+        default:
+            return (currentStep_ + 1) % numSteps;
     }
 }
 
@@ -96,8 +179,7 @@ int StepSequencer::getNextStep()
                 if (next >= numSteps)
                 {
                     forward_ = false;
-                    next = numSteps - 2;
-                    if (next < 0) next = 0;
+                    next = juce::jmax(0, numSteps - 2);
                 }
             }
             else
@@ -106,8 +188,7 @@ int StepSequencer::getNextStep()
                 if (next < 0)
                 {
                     forward_ = true;
-                    next = 1;
-                    if (next >= numSteps) next = 0;
+                    next = juce::jmin(1, numSteps - 1);
                 }
             }
             return next;
@@ -115,8 +196,9 @@ int StepSequencer::getNextStep()
 
         case PlayMode::Invert:
         {
-            // Play pattern with inverted note order
-            return (currentStep_ + 1) % numSteps;
+            // Play the pattern in reverse note order while stepping forward
+            int forwardStep = (currentStep_ + 1) % numSteps;
+            return (numSteps - 1 - forwardStep);
         }
 
         case PlayMode::Random:
@@ -132,12 +214,16 @@ void StepSequencer::start()
     currentStep_ = 0;
     sampleCounter_ = samplesPerStep_; // Trigger first note immediately
     forward_ = true;
+    noteIsOn_ = false;
+    slidingToNext_ = false;
 }
 
 void StepSequencer::stop()
 {
     playing_ = false;
     currentStep_ = 0;
+    noteIsOn_ = false;
+    slidingToNext_ = false;
 }
 
 void StepSequencer::setTempo(double bpm)

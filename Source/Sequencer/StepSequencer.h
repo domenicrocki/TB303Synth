@@ -39,6 +39,7 @@ public:
 
 private:
     int getNextStep();
+    int peekNextStep() const;
 
     PatternData patternData_;
     double sampleRate_ = 44100.0;
@@ -51,6 +52,8 @@ private:
     int currentPattern_ = 0;
     std::atomic<bool> playing_ { false };
     bool forward_ = true; // for FWD&REV mode
+    bool noteIsOn_ = false;
+    bool slidingToNext_ = false;
 
     PlayMode playMode_ = PlayMode::Forward;
     Scale scale_ = Scale::Sixteenth;
