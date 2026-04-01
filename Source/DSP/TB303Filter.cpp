@@ -22,33 +22,42 @@ void TB303Filter::setResonance(float resonance)
 
 void TB303Filter::updateCoefficients()
 {
+    // Pre-warp cutoff frequency
     float fc = cutoff_ / static_cast<float>(sampleRate_);
-    cutoffMapped_ = fc * juce::MathConstants<float>::pi;
-    // Resonance mapped to feedback gain (0 to ~4 for self-oscillation)
-    resMapped_ = resonance_ * 4.0f;
+    fc = juce::jlimit(0.0001f, 0.49f, fc);
+    cutoffMapped_ = std::tan(juce::MathConstants<float>::pi * fc);
+
+    // Resonance: 0-1 mapped to 0-3.5 feedback (controlled self-oscillation)
+    resMapped_ = resonance_ * 3.5f;
 }
 
 float TB303Filter::process(float input)
 {
-    // Simplified diode ladder filter model
-    // 4 cascaded 1-pole lowpass sections with nonlinear feedback
-    float cutoffG = std::tan(cutoffMapped_);
-    float feedback = resMapped_ * (1.0f / (1.0f + cutoffG));
+    // Improved diode ladder filter with stable feedback
+    float g = cutoffMapped_;
+    float G = g / (1.0f + g); // one-pole gain coefficient
 
-    // Feedback from output
+    // Feedback with compensation to prevent blowup
     float feedbackSignal = delay_[3];
+    float feedback = resMapped_ * (1.0f / (1.0f + resMapped_ * 0.25f));
     float inputWithFeedback = input - feedback * std::tanh(feedbackSignal);
 
-    // 4 cascaded 1-pole filters
+    // Limit input to prevent runaway
+    inputWithFeedback = juce::jlimit(-5.0f, 5.0f, inputWithFeedback);
+
+    // 4 cascaded 1-pole filters (trapezoidal integration)
     for (int i = 0; i < 4; ++i)
     {
-        float inputSample = (i == 0) ? inputWithFeedback : stage_[i - 1];
-        float v = cutoffG * (std::tanh(inputSample) - std::tanh(delay_[i]));
+        float inputSample = (i == 0) ? std::tanh(inputWithFeedback) : stage_[i - 1];
+        float v = G * (inputSample - delay_[i]);
         stage_[i] = v + delay_[i];
         delay_[i] = stage_[i] + v;
+
+        // Soft clip each stage to prevent accumulation
+        delay_[i] = juce::jlimit(-4.0f, 4.0f, delay_[i]);
     }
 
-    // Soft clip the output for saturation character
+    // Soft clip output
     return std::tanh(stage_[3]);
 }
 
