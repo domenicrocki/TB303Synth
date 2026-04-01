@@ -148,7 +148,6 @@ void TopPanel::paint(juce::Graphics& g)
 
 void TopPanel::resized()
 {
-    int w = getWidth();
     int rh = getHeight() / 2;
     int kS = 70; // knob size
     int sK = 58; // small knob
