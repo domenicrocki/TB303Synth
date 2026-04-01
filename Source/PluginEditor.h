@@ -23,8 +23,8 @@ private:
     MiddlePanel middlePanel_;
     BottomPanel bottomPanel_;
 
-    static constexpr int EDITOR_WIDTH  = 1500;
-    static constexpr int EDITOR_HEIGHT = 780;
+    static constexpr int EDITOR_WIDTH  = 1100;
+    static constexpr int EDITOR_HEIGHT = 620;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TB303AudioProcessorEditor)
 };

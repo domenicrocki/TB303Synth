@@ -37,7 +37,7 @@ private:
     float currentAccentLevel_ = 0.0f;
     bool noteActive_ = false;
 
-    static constexpr float ENV_MOD_RANGE = 8000.0f;
-    static constexpr float ACCENT_CUTOFF_BOOST = 4000.0f;
-    static constexpr float ACCENT_VOLUME_BOOST = 0.5f;
+    static constexpr float ENV_MOD_RANGE = 5000.0f;
+    static constexpr float ACCENT_CUTOFF_BOOST = 2500.0f;
+    static constexpr float ACCENT_VOLUME_BOOST = 0.4f;
 };

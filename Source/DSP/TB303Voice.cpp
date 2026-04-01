@@ -51,12 +51,13 @@ float TB303Voice::process()
 
     float oscOut = oscillator_.process();
 
-    // Filter envelope modulation
+    // Filter envelope modulation - scale env depth relative to baseCutoff
     float envValue = filterEnvelope_.process();
-    float envDepth = envModAmount_ * ENV_MOD_RANGE;
-    float accentBoost = currentAccentLevel_ * accentAmount_ * ACCENT_CUTOFF_BOOST;
+    float headroom = juce::jmax(0.0f, 18000.0f - baseCutoff_);
+    float envDepth = envModAmount_ * juce::jmin(ENV_MOD_RANGE, headroom);
+    float accentBoost = currentAccentLevel_ * accentAmount_ * juce::jmin(ACCENT_CUTOFF_BOOST, headroom * 0.5f);
     float modulatedCutoff = baseCutoff_ + envValue * (envDepth + accentBoost);
-    modulatedCutoff = juce::jlimit(20.0f, 20000.0f, modulatedCutoff);
+    modulatedCutoff = juce::jlimit(20.0f, 18000.0f, modulatedCutoff);
     filter_.setCutoff(modulatedCutoff);
 
     float filtered = filter_.process(oscOut);
@@ -65,7 +66,8 @@ float TB303Voice::process()
     float accentVolumeBoost = 1.0f + currentAccentLevel_ * accentAmount_ * ACCENT_VOLUME_BOOST;
     float output = filtered * ampEnv * accentVolumeBoost;
 
-    return output;
+    // Soft clip output to prevent overdriving downstream
+    return std::tanh(output);
 }
 
 void TB303Voice::reset()

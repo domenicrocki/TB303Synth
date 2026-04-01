@@ -30,7 +30,7 @@ void TB303AudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
 
-    int topHeight    = 310;
+    int topHeight    = 240;
     int middleHeight = 0;
     int bottomHeight = bounds.getHeight() - topHeight - middleHeight;
 

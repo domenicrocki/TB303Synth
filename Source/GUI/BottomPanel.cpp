@@ -193,91 +193,94 @@ BottomPanel::~BottomPanel() { stopTimer(); }
 
 void BottomPanel::paint(juce::Graphics& g)
 {
-    auto bounds = getLocalBounds();
-    (void)bounds;
+    int w = getWidth();
+    int h = getHeight();
+    int row1H = 160;
 
-    // Row 3 panels
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 5, 270, 220 }, "Sequencer", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 285, 5, 485, 220 }, "Keyboard", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 775, 5, 145, 220 }, "Octave", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 925, 5, 175, 220 }, "Articulation", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 1105, 5, 390, 220 }, "Randomize", TB303Colors::pink());
+    // Row 1 panels
+    TB303LookAndFeel::paintSectionPanel(g, { 4, 4, 195, row1H - 6 }, "Sequencer", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 203, 4, 350, row1H - 6 }, "Keyboard", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 557, 4, 105, row1H - 6 }, "Octave", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 666, 4, 125, row1H - 6 }, "Articulation", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 795, 4, w - 799, row1H - 6 }, "Randomize", TB303Colors::pink());
 
-    // Note name labels above keyboard
+    // Note labels
     g.setColour(TB303Colors::textDim());
-    g.setFont(juce::Font(9.0f, juce::Font::bold));
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
     const char* noteNames[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C" };
-    int kbX = 300;
-    int kbW = 455;
+    int kbX = 212;
+    int kbW = 330;
     float whiteKeyW = static_cast<float>(kbW) / 8.0f;
     int whiteIdx = 0;
     for (int i = 0; i < 13; ++i) {
         bool isBlack = (i == 1 || i == 3 || i == 6 || i == 8 || i == 10);
         if (!isBlack) {
             float xPos = static_cast<float>(kbX) + static_cast<float>(whiteIdx) * whiteKeyW + whiteKeyW * 0.5f;
-            g.drawText(noteNames[i], static_cast<int>(xPos - 10), 22, 20, 12, juce::Justification::centred);
+            g.drawText(noteNames[i], static_cast<int>(xPos - 8), 18, 16, 10, juce::Justification::centred);
             whiteIdx++;
         }
     }
 
-    // Row 4 panels
-    TB303LookAndFeel::paintSectionPanel(g, { 10, 230, 110, 235 }, "Transport", TB303Colors::pink());
-    TB303LookAndFeel::paintSectionPanel(g, { 125, 230, 1370, 235 }, "Step Sequencer", TB303Colors::pink());
+    // Row 2 panels
+    TB303LookAndFeel::paintSectionPanel(g, { 4, row1H + 2, 80, h - row1H - 6 }, "Transport", TB303Colors::pink());
+    TB303LookAndFeel::paintSectionPanel(g, { 88, row1H + 2, w - 92, h - row1H - 6 }, "Step Sequencer", TB303Colors::pink());
 
-    // PATTERN label and step numbers
+    // Step numbers
     g.setColour(TB303Colors::pink());
-    g.setFont(juce::Font(12.0f, juce::Font::bold));
-    g.drawText("PATTERN", 135, 250, 80, 16, juce::Justification::centredLeft);
+    g.setFont(juce::Font(8.0f, juce::Font::bold));
+    g.drawText("PATTERN", 96, row1H + 14, 50, 10, juce::Justification::centredLeft);
 
-    g.setFont(juce::Font(10.0f, juce::Font::bold));
-    int stepStartX = 230;
-    int stepW = 75;
+    int stepStartX = 150;
+    int stepW = (w - stepStartX - 10) / 16;
     for (int i = 0; i < 16; ++i) {
-        g.setColour(TB303Colors::pink());
-        g.drawText(juce::String(i + 1), stepStartX + i * stepW, 250, stepW, 14, juce::Justification::centred);
+        g.drawText(juce::String(i + 1), stepStartX + i * stepW, row1H + 14, stepW, 10, juce::Justification::centred);
     }
 }
 
 void BottomPanel::resized()
 {
-    // Sequencer [10, 5, 270, 220]
-    scaleBox_.setBounds(20, 28, 100, 22);
-    playModeBox_.setBounds(125, 28, 110, 22);
-    patternList_.setBounds(20, 58, 130, 22);
-    patchList_.setBounds(20, 86, 130, 22);
-    int bankX = 155;
+    int w = getWidth();
+    int h = getHeight();
+    int row1H = 160;
+
+    // Sequencer [4, 4, 195, row1H-6]
+    scaleBox_.setBounds(12, 22, 80, 18);
+    playModeBox_.setBounds(96, 22, 95, 18);
+    patternList_.setBounds(12, 46, 95, 18);
+    patchList_.setBounds(12, 68, 95, 18);
+    int bankX = 112;
     for (int i = 0; i < 4; ++i)
-        bankButtons_[i]->setBounds(bankX + i * 30, 58, 26, 20);
+        bankButtons_[i]->setBounds(bankX + i * 24, 46, 20, 16);
     for (int i = 4; i < 8; ++i)
-        bankButtons_[i]->setBounds(bankX + (i - 4) * 30, 84, 26, 20);
+        bankButtons_[i]->setBounds(bankX + (i - 4) * 24, 66, 20, 16);
 
-    // Keyboard [285, 5, 485, 220]
-    keyboard_.setBounds(300, 40, 455, 170);
+    // Keyboard [203, 4, 350, row1H-6]
+    keyboard_.setBounds(212, 30, 330, 120);
 
-    // Transport moved to Row 4 [10, 230, 110, 235]
-    runStopButton_.setBounds(20, 260, 90, 90);
-    recordButton_.setBounds(20, 360, 90, 90);
+    // Octave [557, 4, 105, row1H-6]
+    upButton_.setBounds(565, 24, 88, 55);
+    downButton_.setBounds(565, 84, 88, 55);
 
-    // Octave [775, 5, 145, 220]
-    upButton_.setBounds(790, 40, 115, 85);
-    downButton_.setBounds(790, 130, 115, 85);
+    // Articulation [666, 4, 125, row1H-6]
+    accentButton_.setBounds(674, 24, 52, 60);
+    slideButton_.setBounds(730, 24, 52, 60);
 
-    // Articulation [925, 5, 175, 220]
-    accentButton_.setBounds(940, 40, 70, 80);
-    slideButton_.setBounds(1015, 40, 70, 80);
+    // Randomize [795, 4, ...]
+    generateUndoButton_.setBounds(805, 24, w - 815, 36);
+    modifyUndoButton_.setBounds(805, 65, w - 815, 36);
+    patternClearButton_.setBounds(805, 106, w - 815, 36);
 
-    // Pattern [1105, 5, 390, 220] - "RANDOMIZE" painted as label in paint()
-    generateUndoButton_.setBounds(1120, 50, 170, 48);
-    modifyUndoButton_.setBounds(1120, 106, 170, 48);
-    patternClearButton_.setBounds(1120, 162, 170, 48);
+    // Row 2 - Transport [4, row1H+2, 80, ...]
+    runStopButton_.setBounds(10, row1H + 16, 68, 70);
+    recordButton_.setBounds(10, row1H + 92, 68, 70);
 
-    // Step buttons [125, 230, 1370, 235] - 16 buttons
-    int stepStartX = 230;
-    int stepW = 75;
-    int stepY = 270;
-    int stepH = 180;
+    // Step buttons [88, row1H+2, ...]
+    int stepStartX = 150;
+    int stepW = (w - stepStartX - 10) / 16;
+    int stepY = row1H + 28;
+    int stepH = h - stepY - 8;
     for (int i = 0; i < 16; ++i)
-        stepButtons_[i]->setBounds(stepStartX + i * stepW, stepY, stepW - 4, stepH);
+        stepButtons_[i]->setBounds(stepStartX + i * stepW, stepY, stepW - 3, stepH);
 }
 
 void BottomPanel::timerCallback()
